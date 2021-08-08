@@ -1,0 +1,78 @@
+{
+  "project_info": {
+    "project_number": "167777517376",
+    "project_id": "hro-authen",
+    "storage_bucket": "hro-authen.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:167777517376:android:a7629e59c99370b60544a5",
+        "android_client_info": {
+          "package_name": "hroth.hro"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "167777517376-0pa3ofk3b37ehl81mq9t0gv3qs6mgr44.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "hroth.hro",
+            "certificate_hash": "42ef464bd2d98c6315cf68ca16ccad42974be11c"
+          }
+        },
+        {
+          "client_id": "167777517376-2h0p8d5531brdmaqoh9uhb1bvd6luiur.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "hroth.hro",
+            "certificate_hash": "268ca9a40da6d0869592bdfd93f8ad5d2211ef4b"
+          }
+        },
+        {
+          "client_id": "167777517376-ld9c3ta0asl1ju79f8hqa2694bbj6j0o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "hroth.hro",
+            "certificate_hash": "989bf3a1d21826254f25b05d2d71665e9bd122a7"
+          }
+        },
+        {
+          "client_id": "167777517376-rbupn3pl09ktllbfup9r9r776gstkf4l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "hroth.hro",
+            "certificate_hash": "4cc001759411f7d60ba00c1452e920de5b5146e8"
+          }
+        },
+        {
+          "client_id": "167777517376-ndbq6fadf7m8cn6uuht33tdicin96udd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxMKzKpgBrSCtnhJq1kpOPbRHQ5p-30Nk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "167777517376-ndbq6fadf7m8cn6uuht33tdicin96udd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "167777517376-gvea53tdmb1hdqkdone12aqo09k5iuup.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.overtech.hroios"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

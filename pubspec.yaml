@@ -1,0 +1,134 @@
+name: hro
+description: A new Flutter project.
+
+# The following line prevents the package from being accidentally published to
+# pub.dev using `pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^5.0.0
+  splash_screen_view: ^3.0.0
+  get_version: ^0.2.2
+  http: ^0.13.3
+  firebase_core: ^1.4.0
+  firebase_auth: ^3.0.1
+  cloud_firestore: ^2.4.0
+  firebase_storage: ^10.0.1
+  flutter_signin_button: ^2.0.0
+  google_sign_in: ^5.0.5
+  toast: ^0.1.5
+  geolocator: ^7.3.1
+  geocoder: ^0.2.1
+  awesome_dialog: ^2.1.0
+  url_launcher: ^6.0.9
+  progress_indicators: ^1.0.0
+  firebase_messaging: ^10.0.4
+
+  badges: ^2.0.1
+  cached_network_image: ^3.1.0
+  flutter_cache_manager: ^3.1.2
+  flutter_local_notifications: ^8.0.0
+  flutter_staggered_grid_view: ^0.4.0
+  liquid_pull_to_refresh: ^3.0.0
+  double_back_to_close_app: ^2.0.1
+  font_awesome_flutter: ^9.1.0
+  flutter_launcher_icons: ^0.9.1
+  google_maps_flutter: ^2.0.6
+  image_picker: ^0.8.2
+  time_range_picker: ^2.0.1
+  flutter_rating_bar: ^4.0.0
+  intl: ^0.17.0
+  sign_in_with_apple: ^3.0.0
+  apple_sign_in: ^0.1.0
+  anim_search_bar: ^2.0.2
+  app_settings: ^4.1.1
+  flutter_datetime_picker: ^1.5.1
+
+
+
+
+
+
+  cupertino_icons: ^1.0.2
+  location_permissions: ^4.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+flutter_localizations:
+    sdk: flutter
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/hroLogo.png"
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/images/hroLogo.png
+    - assets/images/googleLogo.png
+    - assets/images/hroLogoThai.png
+    - assets/images/person-icon.png
+    - assets/images/shop-icon.png
+    - assets/images/food_icon.png
+    - assets/images/map.png
+    - assets/images/loadingOld.gif
+    - assets/images/loading.gif
+    - assets/images/foodIcon.png
+    - assets/images/maidLogo.png
+    - assets/images/serviceIcon.png
+    - assets/images/taxiIcon.png
+    - assets/images/idcard.png
+    - assets/sound/slow_spring_board.aiff
+
+
+    
+
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/assets-and-images/#resolution-aware.
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/assets-and-images/#from-packages
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  fonts:
+    - family: Prompt
+      fonts:
+        - asset: assets/fonts/Prompt-Regular.ttf
+        - asset: assets/fonts/Prompt-Italic.ttf
+          style: italic
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/custom-fonts/#from-packages
