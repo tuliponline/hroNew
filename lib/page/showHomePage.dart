@@ -110,7 +110,7 @@ class ShowHomeState extends State<ShowHomePage> {
 
     _checkHaveShop();
     setState(() {
-      print("riderNoti = " + riderNoti.toString());
+      print("riderNoti2 = " + riderNoti.toString());
       print("notiSetState");
     });
   }
