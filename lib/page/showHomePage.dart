@@ -9,6 +9,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hro/model/AppDataModel.dart';
 import 'package:hro/model/UserOneModel.dart';
 import 'package:hro/model/orderModel.dart';
+import 'package:hro/page/orderList.dart';
 import 'package:hro/page/riderPage.dart';
 import 'package:hro/page/shop.dart';
 import 'package:hro/page/userPage.dart';
@@ -34,7 +35,7 @@ class ShowHomeState extends State<ShowHomePage> {
   List<Widget> _children = [];
   bool haveShop = false;
   bool haveRider = false;
-  Widget menuSelect = Container();
+  var menuSelect;
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
   FirebaseFirestore db = FirebaseFirestore.instance;
 
@@ -44,9 +45,19 @@ class ShowHomeState extends State<ShowHomePage> {
   bool shopNoti = false;
   bool orderNoti = false;
 
-  _setUserOneModel(AppDataModel appDataModel) {
+  _setUserOneModel(AppDataModel appDataModel) async {
     userOneModel = appDataModel.userOneModel;
     appDataModel.profileUid = appDataModel.userOneModel.uid;
+
+    await db.collection("admin").doc(userOneModel.uid).get().then((value) {
+      if (value.data() != null) {
+        appDataModel.loginLevel = "3";
+      } else {
+        appDataModel.loginLevel = "1";
+      }
+    }).catchError((onerror) {
+      appDataModel.loginLevel = "1";
+    });
   }
 
   checkNoti(AppDataModel appDataModel) async {
@@ -61,11 +72,12 @@ class ShowHomeState extends State<ShowHomePage> {
         List<OrderList> _orderList;
         var jsonData = setList2Json(value);
         _orderList = orderListFromJson(jsonData);
-        _orderList.forEach((e) {
+        for (var e in _orderList) {
           if (e.status == "1") {
             riderNoti = 1;
             if (e.customerId == appDataModel.userOneModel.uid) {
               orderNoti = true;
+              break;
             }
           } else {
             if (e.driver == userOneModel.uid) {
@@ -87,7 +99,8 @@ class ShowHomeState extends State<ShowHomePage> {
               shopNoti = true;
             }
           }
-        });
+        }
+        ;
       } else {
         riderNoti = 0;
       }
@@ -110,20 +123,26 @@ class ShowHomeState extends State<ShowHomePage> {
     print("haveRider $haveRider");
 
     if (haveShop == false && haveRider == false) {
-      _children = [HomePage(), HomePage(), UserPage()];
-      menuSelect = menu1();
+      _children = [HomePage(), OrderListPage(), UserPage()];
+      menuSelect = "menu1";
     }
     if (haveShop == true && haveRider == true) {
-      _children = [HomePage(), HomePage(), ShopPage(), RiderPage(), UserPage()];
-      menuSelect = menu2();
+      _children = [
+        HomePage(),
+        OrderListPage(),
+        ShopPage(),
+        RiderPage(),
+        UserPage()
+      ];
+      menuSelect = "menu2";
     }
     if (haveShop == true && haveRider == false) {
-      _children = [HomePage(), HomePage(), ShopPage(), UserPage()];
-      menuSelect = menu3();
+      _children = [HomePage(), OrderListPage(), ShopPage(), UserPage()];
+      menuSelect = "menu3";
     }
     if (haveShop == false && haveRider == true) {
-      _children = [HomePage(), HomePage(), RiderPage(), UserPage()];
-      menuSelect = menu4();
+      _children = [HomePage(), OrderListPage(), RiderPage(), UserPage()];
+      menuSelect = "menu4";
     }
     setState(() {});
   }
@@ -143,7 +162,8 @@ class ShowHomeState extends State<ShowHomePage> {
     checkNoti(context.read<AppDataModel>());
     _Notififation();
     flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
-    var android = new AndroidInitializationSettings('@mipmap/launcher_icon');
+    var android =
+        new AndroidInitializationSettings('@drawable/ic_notification');
     var iOS = new IOSInitializationSettings();
     var initSetttings = InitializationSettings(iOS: iOS, android: android);
     flutterLocalNotificationsPlugin.initialize(initSetttings,
@@ -152,32 +172,32 @@ class ShowHomeState extends State<ShowHomePage> {
 
   Future SelectNotification(String payload) {
     debugPrint("payload : $payload");
-    showDialog(
-      context: context,
-      builder: (_) => new AlertDialog(
-        title: Style().textBlackSize(title, 14),
-        content: Style().textFlexibleBackSize(body, 5, 14),
-        actions: [
-          TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Style().textSizeColor('ออก', 14, Colors.black)),
-          (goPage?.isEmpty ?? true)
-              ? (Container())
-              : TextButton(
-                  onPressed: () async {
-                    if (goPage == "/driver-page" || goPage == "/shop-page") {
-                      print(goPage);
-                      Navigator.pop(context);
-                      await Navigator.pushNamed(context, goPage);
-                    }
-                  },
-                  child:
-                      Style().textSizeColor('ดูOrder', 14, Colors.blueAccent))
-        ],
-      ),
-    );
+    // showDialog(
+    //   context: context,
+    //   builder: (_) => new AlertDialog(
+    //     title: Style().textBlackSize(title, 14),
+    //     content: Style().textFlexibleBackSize(body, 5, 14),
+    //     actions: [
+    //       TextButton(
+    //           onPressed: () {
+    //             Navigator.pop(context);
+    //           },
+    //           child: Style().textSizeColor('ออก', 14, Colors.black)),
+    //       (goPage?.isEmpty ?? true)
+    //           ? (Container())
+    //           : TextButton(
+    //               onPressed: () async {
+    //                 if (goPage == "/driver-page" || goPage == "/shop-page") {
+    //                   print(goPage);
+    //                   Navigator.pop(context);
+    //                   await Navigator.pushNamed(context, goPage);
+    //                 }
+    //               },
+    //               child:
+    //                   Style().textSizeColor('ดูOrder', 14, Colors.blueAccent))
+    //     ],
+    //   ),
+    // );
   }
 
   _Notififation() {
@@ -216,8 +236,34 @@ class ShowHomeState extends State<ShowHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    print("_selectedPageIndex = " + _selectedPageIndex.toString());
     return Consumer<AppDataModel>(
         builder: (context, appDataModel, child) => Scaffold(
+            appBar: (appDataModel.loginLevel == "3")
+                ? AppBar(
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          children: [
+                            Style().textBlackSize("Admin", 14),
+                          ],
+                        ),
+                        IconButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, "/adminHome-page");
+                            },
+                            icon: Icon(
+                              Icons.arrow_forward_ios,
+                              color: Style().darkColor,
+                            ))
+                      ],
+                    ),
+                    backgroundColor: Colors.white,
+                    bottomOpacity: 0.0,
+                    elevation: 0.0,
+                  )
+                : null,
             body: DoubleBackToCloseApp(
               child: _children.length > 0
                   ? _children[_selectedPageIndex]
@@ -230,10 +276,21 @@ class ShowHomeState extends State<ShowHomePage> {
                 ),
               ),
             ),
-            bottomNavigationBar: _children.length > 0 ? menuSelect : null));
+            bottomNavigationBar: (appDataModel.locationStatus == false)
+                ? null
+                : _children.length > 0
+                    ? (menuSelect == "menu1")
+                        ? menu1()
+                        : (menuSelect == "menu2")
+                            ? menu2()
+                            : (menuSelect == "menu3")
+                                ? menu3()
+                                : menu4()
+                    : null));
   }
 
-  BottomNavigationBar menu1() {
+  menu1() {
+    print("_selectedPageIndex === " + _selectedPageIndex.toString());
     return BottomNavigationBar(
       items: [
         BottomNavigationBarItem(
@@ -242,7 +299,15 @@ class ShowHomeState extends State<ShowHomePage> {
           backgroundColor: Colors.white,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_basket),
+          icon: (orderNoti == false)
+              ? Icon(Icons.shopping_basket)
+              : Badge(
+                  badgeColor: Colors.red,
+                  position: BadgePosition.topEnd(top: -5, end: -5),
+                  shape: BadgeShape.circle,
+                  borderRadius: BorderRadius.circular(100),
+                  child: Icon(Icons.shopping_basket),
+                  badgeContent: null),
           label: 'ตะกร้า',
           backgroundColor: Colors.white,
         ),
@@ -261,7 +326,7 @@ class ShowHomeState extends State<ShowHomePage> {
     );
   }
 
-  BottomNavigationBar menu2() {
+  menu2() {
     print("riderOnBT = " + riderNoti.toString());
     return BottomNavigationBar(
       items: [
@@ -272,13 +337,13 @@ class ShowHomeState extends State<ShowHomePage> {
         ),
         BottomNavigationBarItem(
           icon: (orderNoti == false)
-              ? Icon(Icons.shopping_bag_sharp)
+              ? Icon(Icons.shopping_basket)
               : Badge(
                   badgeColor: Colors.red,
                   position: BadgePosition.topEnd(top: -5, end: -5),
                   shape: BadgeShape.circle,
                   borderRadius: BorderRadius.circular(100),
-                  child: Icon(Icons.shopping_bag_sharp),
+                  child: Icon(Icons.shopping_basket),
                   badgeContent: null),
           label: 'ตะกร้า',
           backgroundColor: Colors.white,
@@ -332,7 +397,7 @@ class ShowHomeState extends State<ShowHomePage> {
     );
   }
 
-  BottomNavigationBar menu3() {
+  menu3() {
     return BottomNavigationBar(
       items: [
         BottomNavigationBarItem(
@@ -341,12 +406,28 @@ class ShowHomeState extends State<ShowHomePage> {
           backgroundColor: Colors.white,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_basket),
+          icon: (orderNoti == false)
+              ? Icon(Icons.shopping_basket)
+              : Badge(
+                  badgeColor: Colors.red,
+                  position: BadgePosition.topEnd(top: -5, end: -5),
+                  shape: BadgeShape.circle,
+                  borderRadius: BorderRadius.circular(100),
+                  child: Icon(Icons.shopping_basket),
+                  badgeContent: null),
           label: 'ตะกร้า',
           backgroundColor: Colors.white,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.store),
+          icon: (shopNoti == false)
+              ? Icon(Icons.store)
+              : Badge(
+                  badgeColor: Colors.red,
+                  position: BadgePosition.topEnd(top: -5, end: -5),
+                  shape: BadgeShape.circle,
+                  borderRadius: BorderRadius.circular(100),
+                  child: Icon(Icons.store),
+                  badgeContent: null),
           label: 'ร้านค้า',
           backgroundColor: Colors.white,
         ),
@@ -365,7 +446,8 @@ class ShowHomeState extends State<ShowHomePage> {
     );
   }
 
-  BottomNavigationBar menu4() {
+  menu4() {
+    print("_selectedPageIndex ===" + _selectedPageIndex.toString());
     return BottomNavigationBar(
       items: [
         BottomNavigationBarItem(
@@ -374,22 +456,36 @@ class ShowHomeState extends State<ShowHomePage> {
           backgroundColor: Colors.white,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_basket),
+          icon: (orderNoti == false)
+              ? Icon(Icons.shopping_basket)
+              : Badge(
+                  badgeColor: Colors.red,
+                  position: BadgePosition.topEnd(top: -5, end: -5),
+                  shape: BadgeShape.circle,
+                  borderRadius: BorderRadius.circular(100),
+                  child: Icon(Icons.shopping_basket),
+                  badgeContent: null),
           label: 'ตะกร้า',
           backgroundColor: Colors.white,
         ),
         BottomNavigationBarItem(
-          icon: Badge(
-            shape: BadgeShape.circle,
-            borderRadius: BorderRadius.circular(100),
-            child: Icon(Icons.settings),
-            badgeContent: Container(
-              height: 5,
-              width: 5,
-              decoration:
-                  BoxDecoration(shape: BoxShape.circle, color: Colors.white),
-            ),
-          ),
+          icon: (riderNoti == 0)
+              ? Icon(Icons.motorcycle)
+              : (riderNoti == 1)
+                  ? Badge(
+                      badgeColor: Colors.red,
+                      position: BadgePosition.topEnd(top: -5, end: -5),
+                      shape: BadgeShape.circle,
+                      borderRadius: BorderRadius.circular(100),
+                      child: Icon(Icons.motorcycle),
+                      badgeContent: null)
+                  : Badge(
+                      badgeColor: Colors.yellow,
+                      position: BadgePosition.topEnd(top: -5, end: -5),
+                      shape: BadgeShape.circle,
+                      borderRadius: BorderRadius.circular(100),
+                      child: Icon(Icons.motorcycle),
+                      badgeContent: null),
           label: 'Rider',
           backgroundColor: Colors.white,
         ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'dart:math';
 
@@ -16,6 +17,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:geolocator/geolocator.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hro/model/AppDataModel.dart';
@@ -29,6 +31,8 @@ import 'package:hro/model/productsModel.dart';
 import 'package:hro/model/shopModel.dart';
 
 import 'package:hro/utility/Dialogs.dart';
+import 'package:hro/utility/checkLocation.dart';
+import 'package:hro/utility/getAddressName.dart';
 
 import 'package:hro/utility/getAndSetLocation.dart';
 import 'package:hro/utility/snapshot2list.dart';
@@ -75,97 +79,100 @@ class HomeState extends State<HomePage> {
   int productLength;
   bool getData = false;
 
-  int limitProduct = 30;
+  int limitProduct = 100;
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   String goPage = "";
   String title = '';
   String body = "";
+  String nowLocation;
 
   // Triggers fecth() and then add new items or change _hasMore flag
 
   _getAllShop(AppDataModel appDataModel) async {
     print("getShop");
+    if (appDataModel.locationStatus == true) {
+      nowLocation = appDataModel.userLat.toString() +
+          "," +
+          appDataModel.userLng.toString();
 
-    // await db.collection('shops').get().then((value) {
-    //   var jsonData = setList2Json(value);
-    //   List<AllShopModel> allShopModel = allShopModelFromJson(jsonData);
-    //   allShopModel.forEach((element) {
-    //     print(jsonEncode(element));
-    //     // db
-    //     //     .collection("shops")
-    //     //     .doc(element.shopUid)
-    //     //     .update({"shopDistanceService": "4"}).then((value) {
-    //     //   print("updatete");
-    //     // });
-    //   });
-    // });
+      String token = await firebaseMessaging.getToken();
+      print('NotiToken = ' + token.toString());
+      await updateToken(appDataModel.userOneModel.uid, token);
+      await updateOs(appDataModel.userOneModel.uid, appDataModel.os);
+      appDataModel.token = token;
+      CollectionReference shops =
+          FirebaseFirestore.instance.collection('shops');
 
-    String token = await firebaseMessaging.getToken();
-    print('NotiToken = ' + token.toString());
-    await updateToken(appDataModel.profileUid, token);
-    appDataModel.token = token;
-    CollectionReference shops = FirebaseFirestore.instance.collection('shops');
-
-    await db
-        .collection("users")
-        .where("email", isEqualTo: "overtechth@gmail.com")
-        .limit(1)
-        .get()
-        .then((value) {
-      value.docs.forEach((element) {
-        var jsonData = jsonEncode(element.data());
-        print("jsonUser = " + jsonData);
-        UserOneModel userModel = userOneModelFromJson(jsonData);
-        print('Admintoken = ' + userModel.token);
-        appDataModel.adminToken = userModel.token;
-      });
-    });
-
-    await getAndSetLocation(appDataModel.userOneModel.uid);
-
-    await shops.get().then((value) {
-      List<DocumentSnapshot> templist;
-      List list = new List();
-      templist = value.docs;
-      list = templist.map((DocumentSnapshot docSnapshot) {
-        return docSnapshot.data();
-      }).toList();
-      var jsonData = jsonEncode(list);
-      //print('allShopJsonData' + jsonData.toString());
-      appDataModel.allShopData = allShopModelFromJson(jsonData);
-      appDataModel.allFullShopData = allShopModelFromJson(jsonData);
-      print(appDataModel.allShopData.length);
-      _getAllProduct(context.read<AppDataModel>());
-      int shopLength = 0;
-      allShopModelFilter = appDataModel.allShopData;
-      // allShopModelFilter = appDataModel.allShopData
-      //     .where((element) => (element.shopStatus).contains("1"))
-      //     .toList();
-      print("allShopModelFilter = " + allShopModelFilter.length.toString());
-      (allShopModelFilter.length < 10)
-          ? shopLength = allShopModelFilter.length
-          : shopLength = 10;
-      List<String> ranShop = [];
-      for (int i = 0; i < shopLength;) {
-        var randomItem = (allShopModelFilter..shuffle()).first;
-        bool sameData = false;
-        ranShop.forEach((element) {
-          if (element == jsonEncode(randomItem)) sameData = true;
+      await db
+          .collection("users")
+          .where("email", isEqualTo: "overtechth@gmail.com")
+          .limit(1)
+          .get()
+          .then((value) {
+        value.docs.forEach((element) {
+          var jsonData = jsonEncode(element.data());
+          print("jsonUser = " + jsonData);
+          UserOneModel userModel = userOneModelFromJson(jsonData);
+          print('Admintoken = ' + userModel.token);
+          appDataModel.adminToken = userModel.token;
         });
-        if (sameData == false) {
-          ranShop.add(jsonEncode(randomItem));
-          i++;
+      });
+
+      // await getAndSetLocation(appDataModel.userOneModel.uid);
+
+      await shops.get().then((value) {
+        List<DocumentSnapshot> templist;
+        List list = new List();
+        templist = value.docs;
+        list = templist.map((DocumentSnapshot docSnapshot) {
+          return docSnapshot.data();
+        }).toList();
+        var jsonData = jsonEncode(list);
+        //print('allShopJsonData' + jsonData.toString());
+        appDataModel.allShopData = allShopModelFromJson(jsonData);
+        appDataModel.allFullShopData = allShopModelFromJson(jsonData);
+        print(appDataModel.allShopData.length);
+        _getAllProduct(context.read<AppDataModel>());
+        int shopLength = 0;
+
+        allShopModelFilter = appDataModel.allShopData
+            .where((e) => (e.shopStatus).contains("1"))
+            .toList();
+
+        // allShopModelFilter = appDataModel.allShopData
+        //     .where((element) => (element.shopStatus).contains("1"))
+        //     .toList();
+
+        print("allShopModelFilter = " + allShopModelFilter.length.toString());
+        (allShopModelFilter.length < 10)
+            ? shopLength = allShopModelFilter.length
+            : shopLength = 10;
+        List<String> ranShop = [];
+        for (int i = 0; i < shopLength;) {
+          var randomItem = (allShopModelFilter..shuffle()).first;
+          bool sameData = false;
+          ranShop.forEach((element) {
+            if (element == jsonEncode(randomItem)) sameData = true;
+          });
+          if (sameData == false) {
+            ranShop.add(jsonEncode(randomItem));
+            i++;
+          }
         }
-      }
-      String rowData = ranShop.toString();
-      ranShopModel = allShopModelFromJson(rowData);
-      print("randomShopCount" + ranShopModel.length.toString());
-      ranShopModel.forEach((element) {});
-    }).catchError((onError) {
-      appDataModel.allShopData = null;
-      print(onError.toString());
-    });
+        String rowData = ranShop.toString();
+        ranShopModel = allShopModelFromJson(rowData);
+        print("randomShopCount" + ranShopModel.length.toString());
+        ranShopModel.forEach((element) {});
+      }).catchError((onError) {
+        appDataModel.allShopData = null;
+        print(onError.toString());
+      });
+    } else {
+      setState(() {
+        getAllShopStatus = true;
+      });
+    }
   }
 
   _getAllProduct(AppDataModel appDataModel) async {
@@ -192,7 +199,26 @@ class HomeState extends State<HomePage> {
       allProductModelFilter = appDataModel.allProductsData
           .where((element) => (element.productStatus).contains("1"))
           .toList();
-      print("allProductFilter = " + allProductModelFilter.length.toString());
+
+      print(
+          "allProductModelFilter = " + allProductModelFilter.length.toString());
+
+      List<dynamic> indexRemove = [];
+      allProductModelFilter.asMap().forEach((i, e) {
+        appDataModel.allShopData.forEach((element) {
+          if (e.shopUid == element.shopUid) {
+            if (element.shopStatus == "2") {
+              indexRemove.add(e);
+            }
+          }
+        });
+      });
+
+      indexRemove.forEach((element) {
+        allProductModelFilter.remove(element);
+      });
+      print("allProductModelFilterRemove = " +
+          allProductModelFilter.length.toString());
 
       (allProductModelFilter.length < limitProduct)
           ? productLength = allProductModelFilter.length
@@ -386,32 +412,6 @@ class HomeState extends State<HomePage> {
 
   Future SelectNotification(String payload) {
     debugPrint("payload : $payload");
-    showDialog(
-      context: context,
-      builder: (_) => new AlertDialog(
-        title: Style().textBlackSize(title, 14),
-        content: Style().textFlexibleBackSize(body, 5, 14),
-        actions: [
-          TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Style().textSizeColor('ออก', 14, Colors.black)),
-          (goPage?.isEmpty ?? true)
-              ? (Container())
-              : TextButton(
-                  onPressed: () async {
-                    if (goPage == "/driver-page" || goPage == "/shop-page") {
-                      print(goPage);
-                      Navigator.pop(context);
-                      await Navigator.pushNamed(context, goPage);
-                    }
-                  },
-                  child:
-                      Style().textSizeColor('ดูOrder', 14, Colors.blueAccent))
-        ],
-      ),
-    );
   }
 
   showNotification(String title, String body, String goPage) async {
@@ -423,22 +423,6 @@ class HomeState extends State<HomePage> {
     await flutterLocalNotificationsPlugin.show(0, title, body, platform,
         payload: 'Nitish Kumar Singh is part time Youtuber');
   }
-
-  // _getDataForReview(AppDataModel appDataModel)async {
-  //
-  //
-  //   appDataModel.ratingOrderId = e.orderId;
-  //   appDataModel.ratingShopId = e.shopId;
-  //   appDataModel.ratingRiderId = e.driver;
-  //
-  //   var result =  await   Navigator.pushNamed(
-  //       context,  "/Rating4Customer-page");
-  //   if (result != null && result == true){
-  //     setState(() {
-  //       getOrderStatus = false;
-  //     });
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -492,48 +476,81 @@ class HomeState extends State<HomePage> {
         // ),
         body: Container(
           color: Colors.grey.shade100,
-          child: (ranShopModel == null || ranProductModel == null)
+          child: (appDataModel.locationStatus == false)
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      JumpingDotsProgressIndicator(
-                        fontSize: 60,
-                        color: Style().darkColor,
+                      Container(
+                        margin: EdgeInsets.only(bottom: 10),
+                        child: Icon(
+                          Icons.location_disabled,
+                          size: 40,
+                          color: Colors.red,
+                        ),
                       ),
+                      Style().textSizeColor(
+                          "เข้าถึงตำแหน่งของคุณไม่ได้ โปรดตรวจสอบการตั้งค่า",
+                          14,
+                          Style().darkColor),
+                      Container(
+                        margin: EdgeInsets.only(top: 10),
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              primary: Style().darkColor,
+                            ),
+                            onPressed: () async {
+                              await Geolocator.openLocationSettings();
+                              exit(0);
+                            },
+                            child: Style()
+                                .textSizeColor("ตั้งค่า", 14, Colors.white)),
+                      )
                     ],
                   ),
                 )
-              : Center(
-                  child: LiquidPullToRefresh(
-                    // key if you want to add
-                    color: Colors.white,
-                    backgroundColor: Style().darkColor,
-                    springAnimationDurationInMilliseconds: 3,
-                    showChildOpacityTransition: false,
-                    onRefresh: _handleRefresh,
-                    height: 50,
-                    child: ListView(
-                      children: [
-                        Column(
-                          // mainAxisAlignment: MainAxisAlignment.center,
+              : (ranShopModel == null || ranProductModel == null)
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          JumpingDotsProgressIndicator(
+                            fontSize: 60,
+                            color: Style().darkColor,
+                          ),
+                        ],
+                      ),
+                    )
+                  : Center(
+                      child: LiquidPullToRefresh(
+                        // key if you want to add
+                        color: Colors.white,
+                        backgroundColor: Style().darkColor,
+                        springAnimationDurationInMilliseconds: 3,
+                        showChildOpacityTransition: false,
+                        onRefresh: _handleRefresh,
+                        height: 50,
+                        child: ListView(
                           children: [
-                            // Container(
-                            //   padding:
-                            //       EdgeInsets.only(left: 10, right: 10, top: 10),
-                            //   child: buildMainMenu(),
-                            // ),
-                            // buildMainMenu(),
-                            showShop((context.read<AppDataModel>())),
-                            showProduct((context.read<AppDataModel>())),
-                            // showProductLoadMore(
-                            //     (context.read<AppDataModel>())),
+                            Column(
+                              // mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Container(
+                                //   padding:
+                                //       EdgeInsets.only(left: 10, right: 10, top: 10),
+                                //   child: buildMainMenu(),
+                                // ),
+                                // buildMainMenu(),
+                                showShop((context.read<AppDataModel>())),
+                                showProduct((context.read<AppDataModel>())),
+                                // showProductLoadMore(
+                                //     (context.read<AppDataModel>())),
+                              ],
+                            ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
         ),
       ),
     );
@@ -660,7 +677,7 @@ class HomeState extends State<HomePage> {
                         shopModel = shopModelFromJson(jsonEncode(shop));
                         costDeliveryStr = _calCostDelivery(
                             shopModel.shopLocation,
-                            appDataModel.userOneModel.location,
+                            nowLocation,
                             int.parse(
                                 appDataModel.locationSetupModel.distanceStart),
                             int.parse(appDataModel
@@ -844,7 +861,7 @@ class HomeState extends State<HomePage> {
                   staggeredTileBuilder: (int index) => StaggeredTile.fit(1),
                   mainAxisSpacing: 5,
                   crossAxisSpacing: 5,
-                  itemCount: 10,
+                  itemCount: ranShopModel.length,
                   itemBuilder: (BuildContext context, int index) {
                     return InkWell(
                       onTap: () async {
@@ -998,34 +1015,31 @@ class HomeState extends State<HomePage> {
       ),
     );
   }
-}
 
-_calCostDelivery(
-    String shopLocation, userLocation, int distanceMin, costStart, costPerKm) {
-  List<String> locationLatLng = shopLocation.split(",");
-  double lat1 = double.parse(locationLatLng[0]);
-  double lng1 = double.parse(locationLatLng[1]);
+  _calCostDelivery(String shopLocation, userLocation, int distanceMin,
+      costStart, costPerKm) {
+    List<String> locationLatLng = shopLocation.split(",");
+    double lat1 = double.parse(locationLatLng[0]);
+    double lng1 = double.parse(locationLatLng[1]);
 
-  List<String> userLocationLatLng = userLocation.split(",");
-  double lat2 = double.parse(userLocationLatLng[0]);
-  double lng2 = double.parse(userLocationLatLng[1]);
+    List<String> userLocationLatLng = nowLocation.split(",");
+    double lat2 = double.parse(userLocationLatLng[0]);
+    double lng2 = double.parse(userLocationLatLng[1]);
 
-  double distance = 0;
-  int costDelivery = costStart;
+    double distance = 0;
+    int costDelivery = costStart;
 
-  var p = 0.017453292519943295;
-  var c = cos;
-  var a = 0.5 -
-      c((lat2 - lat1) * p) / 2 +
-      c(lat1 * p) * c(lat2 * p) * (1 - c((lng2 - lng1) * p)) / 2;
-  distance = 12742 * asin(sqrt(a));
+    distance = calculateDistance(lat1, lng1, lat2, lng2);
 
-  int distanceFinal = distance.ceil();
-  int distanceLeft;
-  if (distance > distanceMin) {
-    distanceLeft = distanceFinal - distanceMin;
-    costDelivery += (costPerKm * distanceLeft);
+    print("distance = " + distance.toString());
+
+    int distanceFinal = distance.ceil();
+    int distanceLeft;
+    if (distance > distanceMin) {
+      distanceLeft = distanceFinal - distanceMin;
+      costDelivery += (costPerKm * distanceLeft);
+    }
+
+    return costDelivery;
   }
-
-  return costDelivery;
 }

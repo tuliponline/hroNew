@@ -29,8 +29,10 @@ class UserState extends State<UserPage> {
   String loginPrivider;
 
   bool showShopAndDriver = false;
+  double screeW;
 
   _checkHaveShop(AppDataModel appDataModel) async {
+    screeW = appDataModel.screenW;
     print("appDataModel.screenW = " + appDataModel.screenW.toString());
     loginPrivider = appDataModel.loginProvider;
     screenW = appDataModel.screenW;
@@ -58,90 +60,93 @@ class UserState extends State<UserPage> {
               body: SafeArea(
                 child: Container(
                   margin: EdgeInsets.all(10),
-                  child: Column(
-                    children: [
-                      Container(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Container(
+                            margin: EdgeInsets.only(top: 10),
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10)),
+                              color: Colors.white,
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Style()
+                                        .textBlackSize('ร้านค้า และ Rider', 14),
+                                    IconButton(
+                                        onPressed: () {
+                                          if (showShopAndDriver) {
+                                            showShopAndDriver = false;
+                                          } else {
+                                            showShopAndDriver = true;
+                                          }
+                                          setState(() {});
+                                        },
+                                        icon: (showShopAndDriver
+                                            ? Icon(Icons.arrow_drop_up)
+                                            : Icon(Icons.arrow_drop_down)))
+                                  ],
+                                ),
+                                (showShopAndDriver)
+                                    ? Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          haveShop == false
+                                              ? topmenuShop()
+                                              : Container(),
+                                          haveRider == false
+                                              ? topmenuRider()
+                                              : Container()
+                                        ],
+                                      )
+                                    : Container()
+                              ],
+                            )),
+                        _showProfile(),
+                        // _showOrderMenu(),
+                        _showWallet(),
+                        Container(
                           margin: EdgeInsets.only(top: 10),
-                          padding: EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                            color: Colors.white,
-                          ),
-                          child: Column(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Style()
-                                      .textBlackSize('ร้านค้า และ Rider', 14),
-                                  IconButton(
-                                      onPressed: () {
-                                        if (showShopAndDriver) {
-                                          showShopAndDriver = false;
-                                        } else {
-                                          showShopAndDriver = true;
-                                        }
-                                        setState(() {});
-                                      },
-                                      icon: (showShopAndDriver
-                                          ? Icon(Icons.arrow_drop_up)
-                                          : Icon(Icons.arrow_drop_down)))
-                                ],
-                              ),
-                              (showShopAndDriver)
-                                  ? Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        haveShop == false
-                                            ? topmenuShop()
-                                            : Container(),
-                                        haveRider == false
-                                            ? topmenuRider()
-                                            : Container()
-                                      ],
-                                    )
-                                  : Container()
+                              SizedBox(
+                                width: screenW * 0.9,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    var resule = await dialogs.confirm(
+                                      context,
+                                      "ออกจากระบบ",
+                                      "ยืนยันการออกจากระบบ",
+                                    );
+                                    if (resule) {
+                                      await FirebaseAuth.instance.signOut();
+                                      await googleSignIn.signOut();
+                                      Navigator.pushNamedAndRemoveUntil(context,
+                                          '/first-page', (route) => false);
+                                    }
+                                  },
+                                  child: Style().textSizeColor(
+                                      "ออกจากระบบ", 16, Colors.white),
+                                  style: ButtonStyle(
+                                      backgroundColor:
+                                          MaterialStateProperty.all(Colors.red),
+                                      textStyle: MaterialStateProperty.all(
+                                          TextStyle(fontSize: 30))),
+                                ),
+                              )
                             ],
-                          )),
-                      _showProfile(),
-                      _showOrderMenu(),
-                      _showWallet(),
-                      Container(
-                        margin: EdgeInsets.only(top: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: screenW * 0.9,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  var resule = await dialogs.confirm(
-                                    context,
-                                    "ออกจากระบบ",
-                                    "ยืนยันการออกจากระบบ",
-                                  );
-                                  if (resule) {
-                                    await FirebaseAuth.instance.signOut();
-                                    await googleSignIn.signOut();
-                                    Navigator.pushNamedAndRemoveUntil(context,
-                                        '/first-page', (route) => false);
-                                  }
-                                },
-                                child: Style().textSizeColor(
-                                    "ออกจากระบบ", 16, Colors.white),
-                                style: ButtonStyle(
-                                    backgroundColor:
-                                        MaterialStateProperty.all(Colors.red),
-                                    textStyle: MaterialStateProperty.all(
-                                        TextStyle(fontSize: 30))),
-                              ),
-                            )
-                          ],
-                        ),
-                      )
-                    ],
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -206,7 +211,9 @@ class UserState extends State<UserPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Style().textBlackSize(userOneModel.name, 18),
+                      Container(
+                          width: screeW * 0.4,
+                          child: Style().textBlackSize(userOneModel.name, 16)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
@@ -228,8 +235,9 @@ class UserState extends State<UserPage> {
             ),
           ),
           IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/profile-page');
+            onPressed: () async {
+              await Navigator.pushNamed(context, '/profile-page');
+              _checkHaveShop(context.read<AppDataModel>());
             },
             icon: Icon(Icons.edit, size: 30, color: Colors.red),
           )

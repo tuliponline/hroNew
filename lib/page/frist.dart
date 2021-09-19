@@ -17,6 +17,7 @@ import 'package:hro/model/UserOneModel.dart';
 import 'package:hro/utility/checkLocation.dart';
 import 'package:hro/utility/checkTokenMsg.dart';
 import 'package:hro/utility/checkVersion.dart';
+import 'package:hro/utility/regexText.dart';
 import 'package:hro/utility/style.dart';
 import 'package:location_permissions/location_permissions.dart';
 import 'package:provider/provider.dart';
@@ -46,6 +47,8 @@ class FirstState extends State<FirstPage> {
   bool locationPermission = false;
   bool locationServiceEnabled = false;
 
+  var _email = TextEditingController(), _password = TextEditingController();
+
   _getOs(AppDataModel appDataModel) {
     if (Platform.isAndroid) {
       appDataModel.os = "android";
@@ -58,7 +61,6 @@ class FirstState extends State<FirstPage> {
 
   _checkLocation(AppDataModel appDataModel) async {
     appDataModel.screenW = MediaQuery.of(context).size.width;
-
     locationServiceEnabled = await checkLocationService();
     if (locationServiceEnabled) {
       locationPermission = await checkLocationSPermission();
@@ -94,14 +96,20 @@ class FirstState extends State<FirstPage> {
       appDataModel.userLat = position.latitude;
       appDataModel.userLng = position.longitude;
       locationStatus = true;
+      appDataModel.locationStatus = locationStatus;
       await _checkVersion(context.read<AppDataModel>());
 
       _checkLogin(context.read<AppDataModel>());
     } else {
-      setState(() {
-        locationStatus = false;
-        checkSystemStatus = true;
-      });
+      appDataModel.userLat = 13.758576654702438;
+      appDataModel.userLng = 100.49302608352504;
+      locationStatus = false;
+      appDataModel.locationStatus = locationStatus;
+      checkSystemStatus = true;
+      await _checkVersion(context.read<AppDataModel>());
+
+      _checkLogin(context.read<AppDataModel>());
+      setState(() {});
     }
     print(locationServiceEnabled);
     print(locationPermission);
@@ -169,9 +177,13 @@ class FirstState extends State<FirstPage> {
         //print("userLogin = " + user.displayName);
         Navigator.pushNamedAndRemoveUntil(
             context, '/showHome-page', (route) => false);
+      }).catchError((onError) {
+        _auth.signOut();
       });
     } else {
       print("nonlogin");
+      await Navigator.pushNamed(context, "/showFrist-page");
+
       setState(() {
         checkSystemStatus = true;
       });
@@ -248,6 +260,29 @@ class FirstState extends State<FirstPage> {
     }
   }
 
+  Future<Null> singInWithEmail(AppDataModel appDataModel) {
+    if (_email.text.length > 0 && _password.text.length > 0) {
+      if (emailRegex(_email.text)) {
+        _auth
+            .signInWithEmailAndPassword(
+                email: _email.text, password: _password.text)
+            .then((value) {
+          print("value = " + value.user.displayName);
+          _checkLogin(context.read<AppDataModel>());
+        }).catchError((onError) {
+          Toast.show("email or password is incorrect", context,
+              duration: Toast.LENGTH_SHORT, gravity: Toast.CENTER);
+        });
+      } else {
+        Toast.show("wrong Email", context,
+            duration: Toast.LENGTH_SHORT, gravity: Toast.CENTER);
+      }
+    } else {
+      Toast.show("Email or Password is emply", context,
+          duration: Toast.LENGTH_SHORT, gravity: Toast.CENTER);
+    }
+  }
+
   Future<Null> _checkHaveUser(AppDataModel appDataModel) async {
     String token = await checkTokenMsg();
     print("token = $token");
@@ -265,6 +300,10 @@ class FirstState extends State<FirstPage> {
             context, '/showHome-page', (route) => false);
       } else {
         print("Not have User");
+        if (appDataModel.profilePhotoUrl == null) {
+          appDataModel.profilePhotoUrl =
+              "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png";
+        }
         UserOneModel model = UserOneModel(
           uid: appDataModel.profileUid,
           name: appDataModel.profileName,
@@ -317,24 +356,62 @@ class FirstState extends State<FirstPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Style().titleH0("เฮาะ"),
+                          Style().textSizeColor(
+                              "เฮาะ", 60, Style().primaryColorHro),
                         ],
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Style().textDark("อากาศเดลิเวอรี่"),
+                          Style().textSizeColor("ส่งถึงที่", 20, Colors.black),
                         ],
                       ),
+                      (appDataModel.appConfigModel == null ||
+                              appDataModel.appConfigModel.emailLogin == "0")
+                          ? Container()
+                          : _buildEmailLogin(context.read<AppDataModel>()),
                       (checkSystemStatus == false)
                           ? Style().loading()
                           : (locationServiceEnabled == false ||
                                   locationPermission == false)
-                              ? Container(
-                                  child: Style().textSizeColor(
-                                      "เข้าถึงตำแหน่งของคุณไม่ได้",
-                                      14,
-                                      Colors.red))
+                              ?
+                              // Container(
+                              //     child: Style().textSizeColor(
+                              //         "เข้าถึงตำแหน่งของคุณไม่ได้",
+                              //         14,
+                              //         Colors.red))
+                              Container(
+                                  child: Column(
+                                    children: [
+                                      (appDataModel.os == "android")
+                                          ? SignInButton(
+                                              Buttons.Google,
+                                              text: "Sign in with Google",
+                                              onPressed: () async {
+                                                await signInWithGoogle(context
+                                                    .read<AppDataModel>());
+                                              },
+                                            )
+                                          : SignInButton(
+                                              Buttons.Apple,
+                                              text: "Sign in with Apple",
+                                              onPressed: () async {
+                                                signInWithApple(appDataModel);
+                                              },
+                                            ),
+                                      (appDataModel.os == "ios")
+                                          ? SignInButton(
+                                              Buttons.Google,
+                                              text: "Sign in with Google",
+                                              onPressed: () async {
+                                                await signInWithGoogle(context
+                                                    .read<AppDataModel>());
+                                              },
+                                            )
+                                          : Container()
+                                    ],
+                                  ),
+                                )
                               : Container(
                                   child: Column(
                                     children: [
@@ -363,13 +440,7 @@ class FirstState extends State<FirstPage> {
                                                     .read<AppDataModel>());
                                               },
                                             )
-                                          : SignInButton(
-                                              Buttons.Apple,
-                                              text: "Sign in with Apple",
-                                              onPressed: () async {
-                                                signInWithApple(appDataModel);
-                                              },
-                                            ),
+                                          : Container()
                                     ],
                                   ),
                                 )
@@ -378,6 +449,117 @@ class FirstState extends State<FirstPage> {
                 ),
               ),
             ));
+  }
+
+  _buildEmailLogin(AppDataModel appDataModel) {
+    return Container(
+        margin: EdgeInsets.only(top: 10, bottom: 10),
+        width: appDataModel.screenW * 0.7,
+        child: Column(
+          children: [
+            TextField(
+              style: TextStyle(
+                  fontFamily: "prompt", fontSize: 14, color: Style().darkColor),
+              decoration: InputDecoration(
+                  hintText: 'Email',
+                  hintStyle: TextStyle(
+                      fontFamily: "prompt",
+                      fontSize: 14,
+                      color: Style().darkColor),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(8.0),
+                      ),
+                      borderSide: BorderSide.none),
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(8.0),
+                      ),
+                      borderSide: BorderSide.none),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(8.0),
+                      ),
+                      borderSide: BorderSide.none),
+                  suffixIcon: Icon(
+                    Icons.email,
+                    color: Colors.green,
+                  ),
+                  filled: true,
+                  fillColor: Color.fromRGBO(243, 244, 247, 1)),
+              controller: _email,
+              onChanged: (value) {
+                setState(() {});
+              },
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 5),
+              child: TextField(
+                obscureText: true,
+                style: TextStyle(
+                    fontFamily: "prompt",
+                    fontSize: 14,
+                    color: Style().darkColor),
+                decoration: InputDecoration(
+                    hintText: 'Password',
+                    hintStyle: TextStyle(
+                        fontFamily: "prompt",
+                        fontSize: 14,
+                        color: Style().darkColor),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(8.0),
+                        ),
+                        borderSide: BorderSide.none),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(8.0),
+                        ),
+                        borderSide: BorderSide.none),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(8.0),
+                        ),
+                        borderSide: BorderSide.none),
+                    suffixIcon: Icon(
+                      Icons.lock,
+                      color: Colors.green,
+                    ),
+                    filled: true,
+                    fillColor: Color.fromRGBO(243, 244, 247, 1)),
+                controller: _password,
+                onChanged: (value) {
+                  setState(() {});
+                },
+              ),
+            ),
+            Container(
+              width: appDataModel.screenW * 0.7,
+              margin: EdgeInsets.only(top: 10),
+              child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Style().darkColor,
+                  ),
+                  onPressed: () async {
+                    singInWithEmail(context.read<AppDataModel>());
+                  },
+                  child: Style().textSizeColor(
+                      "เข้าสู่ระบบด้วย Email", 14, Colors.white)),
+            ),
+            Container(
+                margin: EdgeInsets.only(top: 10),
+                child: InkWell(
+                    // onTap: () async {
+                    //   print("Register");
+                    //   var result =
+                    //       Navigator.pushNamed(context, "/register-page");
+                    //   if (result != null) {
+                    //     _checkLogin(context.read<AppDataModel>());
+                    //   }
+                    // },
+                    child: Style().textSizeColor("or", 16, Style().darkColor)))
+          ],
+        ));
   }
 
   Future<Null> registerFirebase() async {

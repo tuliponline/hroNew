@@ -47,7 +47,9 @@ class RiderHistoryState extends State<RiderHistoryPagr> {
     costDeliveryAll = 0;
     amountAll = 0;
     orderCount = 0;
-    riderRating = await calRatingRider(appDataModel.userOneModel.uid);
+    List ratingResult = await calRatingRider(appDataModel.userOneModel.uid);
+    riderRating = ratingResult[0];
+    appDataModel.riderRatingList = ratingResult[1];
     print(startDate);
     await db
         .collection("orders")
@@ -87,40 +89,44 @@ class RiderHistoryState extends State<RiderHistoryPagr> {
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Column(
-                      children: [
-                        Style().textBlackSize("Rider Stars", 14),
-                        (riderRating == 0.0)
-                            ? Style().textBlackSize("ยังไม่มีคะแนน", 12)
-                            : Row(
-                                children: [
-                                  RatingBar.builder(
-                                    itemSize: 15,
-                                    initialRating: riderRating,
-                                    minRating: 1,
-                                    direction: Axis.horizontal,
-                                    allowHalfRating: false,
-                                    itemCount: 5,
-                                    itemPadding:
-                                        EdgeInsets.symmetric(horizontal: 2.0),
-                                    itemBuilder: (context, _) => Icon(
-                                      Icons.star,
-                                      color: Colors.amber,
+                    SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Style().textBlackSize("Rider Stars", 14),
+                          (riderRating == 0.0)
+                              ? Style().textBlackSize("ยังไม่มีคะแนน", 12)
+                              : Row(
+                                  children: [
+                                    RatingBar.builder(
+                                      itemSize: 15,
+                                      initialRating: riderRating,
+                                      minRating: 1,
+                                      direction: Axis.horizontal,
+                                      allowHalfRating: false,
+                                      itemCount: 5,
+                                      itemPadding:
+                                          EdgeInsets.symmetric(horizontal: 2.0),
+                                      itemBuilder: (context, _) => Icon(
+                                        Icons.star,
+                                        color: Colors.amber,
+                                      ),
+                                      onRatingUpdate: (rating) {
+                                        print(rating);
+                                      },
                                     ),
-                                    onRatingUpdate: (rating) {
-                                      print(rating);
-                                    },
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      print("ViewRatingDetail");
-                                    },
-                                    child: Style().textSizeColor(
-                                        " ดูรีวิว", 10, Style().darkColor),
-                                  )
-                                ],
-                              ),
-                      ],
+                                    InkWell(
+                                      onTap: () {
+                                        print("ViewRatingDetail");
+                                        Navigator.pushNamed(
+                                            context, "/riderReview-page");
+                                      },
+                                      child: Style().textSizeColor(
+                                          " ดูรีวิว", 10, Style().darkColor),
+                                    )
+                                  ],
+                                ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

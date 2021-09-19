@@ -3,13 +3,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hro/model/AppDataModel.dart';
+import 'package:hro/model/UserListMudel.dart';
 import 'package:hro/model/UserOneModel.dart';
+import 'package:hro/model/allShopModel.dart';
+import 'package:hro/model/driverModel.dart';
 import 'package:hro/model/orderModel.dart';
 import 'package:hro/model/shopModel.dart';
 import 'package:hro/utility/Dialogs.dart';
 import 'package:hro/utility/addLog.dart';
+import 'package:hro/utility/notifySend.dart';
 import 'package:hro/utility/snapshot2list.dart';
 import 'package:hro/utility/style.dart';
 import 'package:provider/provider.dart';
@@ -39,6 +44,20 @@ class ShopState extends State<ShopPage> {
 
   _setData(AppDataModel appDataModel) async {
     userOneModel = appDataModel.userOneModel;
+    await db.collection("drivers").get().then((value) {
+      var jsonData = setList2Json(value);
+      appDataModel.allRiderData = driversListModelFromJson(jsonData);
+    });
+    await db.collection("users").get().then((value) {
+      var jsonData = setList2Json(value);
+      appDataModel.alluserData = userListModelFromJson(jsonData);
+    });
+
+    await db.collection("shops").get().then((value) {
+      var jsonData = setList2Json(value);
+      appDataModel.allShopData = allShopModelFromJson(jsonData);
+    });
+
     await db
         .collection('shops')
         .doc(userOneModel.uid)
@@ -108,17 +127,7 @@ class ShopState extends State<ShopPage> {
       print('Got a message whilst in the foreground!');
       print('Message data: ${message.data}');
       if (message.notification != null) {
-        print('Message also contained a notification: ${message.notification}');
-        // await normalDialog(context, message.notification.title + '',
-        //      message.notification.body);
-        print(message.notification.title);
-
-        print("nowPage = " + ModalRoute.of(context).settings.name);
-
-        if (message.notification.title.contains('Shop')) {
-          print('Shop');
-          _setData(context.read<AppDataModel>());
-        }
+        _setData(context.read<AppDataModel>());
       }
     });
   }
@@ -151,6 +160,15 @@ class ShopState extends State<ShopPage> {
                     title:
                         Style().textSizeColor('ร้านค้า', 18, Style().darkColor),
                     actions: [
+                      IconButton(
+                          icon: Icon(
+                            Icons.star,
+                            color: Colors.orange,
+                            size: 30,
+                          ),
+                          onPressed: () async {
+                            Navigator.pushNamed(context, "/shopHistory-page");
+                          }),
                       IconButton(
                           icon: Icon(
                             FontAwesomeIcons.sync,
@@ -339,7 +357,7 @@ class ShopState extends State<ShopPage> {
                   borderRadius: BorderRadius.circular(10.0),
                   color: Colors.white,
                 ),
-                margin: EdgeInsets.only(top: 8, left: 8, right: 8),
+                margin: EdgeInsets.only(top: 2, left: 8, right: 8),
                 child: Column(
                   children: [
                     Row(
@@ -350,8 +368,14 @@ class ShopState extends State<ShopPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             ListTile(
-                              title: Style().textFlexibleBackSize(
-                                  'order ' + e.orderId, 2, 12),
+                              title: Row(
+                                children: [
+                                  Style().textSizeColor('order No.' + e.orderId,
+                                      12, Style().textColor),
+                                  Style().textSizeColor(" (" + e.amount + "฿)",
+                                      12, Style().darkColor)
+                                ],
+                              ),
                               subtitle: Style().textSizeColor(
                                   statusStr,
                                   12,
@@ -365,7 +389,9 @@ class ShopState extends State<ShopPage> {
                                               ? Colors.orangeAccent
                                               : Style().darkColor),
                             ),
-                            Style().textBlackSize(e.startTime, 12)
+                            Container(
+                                margin: EdgeInsets.only(left: 10),
+                                child: Style().textBlackSize(e.startTime, 12))
                           ],
                         )),
                         IconButton(
@@ -394,8 +420,8 @@ class ShopState extends State<ShopPage> {
                         ? (orderProduct == null)
                             ? Style().circularProgressIndicator(
                                 Style().shopPrimaryColor)
-                            : showDetailList(e.orderId, e.status,
-                                context.read<AppDataModel>())
+                            : showDetailList(e.orderId, e.status, e.driver,
+                                e.customerId, context.read<AppDataModel>())
                         : Container()
                   ],
                 ),
@@ -460,7 +486,7 @@ class ShopState extends State<ShopPage> {
                   borderRadius: BorderRadius.circular(10.0),
                   color: Colors.white,
                 ),
-                margin: EdgeInsets.only(top: 8, left: 8, right: 8),
+                margin: EdgeInsets.only(top: 2, left: 8, right: 8),
                 child: Column(
                   children: [
                     Row(
@@ -491,7 +517,10 @@ class ShopState extends State<ShopPage> {
                                           : (e.status == "3")
                                               ? Colors.orangeAccent
                                               : Style().darkColor),
-                            )
+                            ),
+                            Container(
+                                margin: EdgeInsets.only(left: 10),
+                                child: Style().textBlackSize(e.startTime, 12))
                           ],
                         )),
                         IconButton(
@@ -519,8 +548,8 @@ class ShopState extends State<ShopPage> {
                     (showDetail[index] == true)
                         ? (orderProduct == null)
                             ? Style().loading()
-                            : showDetailList(e.orderId, e.status,
-                                context.read<AppDataModel>())
+                            : showDetailList(e.orderId, e.status, e.driver,
+                                e.customerId, context.read<AppDataModel>())
                         : Container()
                   ],
                 ),
@@ -534,58 +563,111 @@ class ShopState extends State<ShopPage> {
     );
   }
 
-  showDetailList(
-      String orderIdSelect, String orderStatus, AppDataModel appDataModel) {
-    return Column(
-      children: [
-        Column(
-            children: orderProduct.map((e) {
-          print('comment' + e.comment);
-          String productDetail;
-          appDataModel.allProductsData.forEach((element) {
-            if (e.productId == element.productId)
-              productDetail = element.productDetail;
-          });
+  showDetailList(String orderIdSelect, orderStatus, orderRider, orderUser,
+      AppDataModel appDataModel) {
+    String userName, userPhone, riderName, RiderPhone;
+    appDataModel.alluserData.forEach((element) {
+      if (element.uid == orderUser) {
+        userName = element.name;
+        userPhone = element.phone;
+      }
+    });
+    appDataModel.allRiderData.forEach((element) {
+      if (element.driverId == orderRider) {
+        riderName = element.driverName;
+        RiderPhone = element.driverPhone;
+      }
+    });
 
-          return Row(
-            children: [
-              Expanded(
-                  child: Column(
-                children: [
-                  ListTile(
-                    title: Style().textFlexibleBackSize(e.name, 2, 14),
-                    subtitle: (productDetail == null)
-                        ? Text("")
-                        : Style().textFlexibleBackSize(productDetail, 2, 12),
-                  ),
-                  (e.comment == null)
-                      ? Container()
-                      : Style()
-                          .textFlexibleColorSize(e.comment, 2, 12, Colors.red)
-                ],
-              )),
-              Column(
-                children: [
-                  Style().textSizeColor(
-                      (int.parse(e.pcs) * int.parse(e.price)).toString() + ' ฿',
-                      14,
-                      Style().textColor),
-                  Row(
-                    children: [
-                      Style().textSizeColor(e.price, 12, Style().darkColor),
-                      Style().textSizeColor(
-                          ' ฿/จำนวน x ' + e.pcs, 12, Style().darkColor)
-                    ],
-                  )
-                ],
-              )
-            ],
-          );
-        }).toList()),
-        buildAmount(),
-        (orderStatus == '2') ? buildConfirmMenu() : Container()
-      ],
-    );
+    return Column(children: [
+      Column(
+        children: [
+          Column(children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                    margin: EdgeInsets.only(left: 10),
+                    child: Style().textBlackSize("ลูกค้า: $userName", 14)),
+                IconButton(
+                    onPressed: () {
+                      _callNumber(userPhone);
+                    },
+                    icon: Icon(
+                      Icons.phone,
+                      color: Style().darkColor,
+                    ))
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                    margin: EdgeInsets.only(left: 10),
+                    child: Style().textBlackSize("Rider: $riderName", 14)),
+                IconButton(
+                    onPressed: () {
+                      _callNumber(userPhone);
+                    },
+                    icon: Icon(
+                      Icons.phone,
+                      color: Style().darkColor,
+                    ))
+              ],
+            )
+          ]),
+          Column(
+              children: orderProduct.map((e) {
+            String productDetail;
+            appDataModel.allProductsData.forEach((element) {
+              if (e.productId == element.productId)
+                productDetail = element.productDetail;
+            });
+
+            return Row(
+              children: [
+                Expanded(
+                    child: Column(
+                  children: [
+                    ListTile(
+                      title: Style().textFlexibleBackSize(e.name, 2, 14),
+                      subtitle: (productDetail == null)
+                          ? Text("")
+                          : Style().textFlexibleBackSize(productDetail, 2, 12),
+                    ),
+                    (e.comment == null)
+                        ? Container()
+                        : Container(
+                            margin: EdgeInsets.only(left: 20),
+                            child: Style().textFlexibleColorSize(
+                                e.comment, 2, 12, Colors.red),
+                          )
+                  ],
+                )),
+                Column(
+                  children: [
+                    Style().textSizeColor(
+                        (int.parse(e.pcs) * int.parse(e.price)).toString() +
+                            ' ฿',
+                        14,
+                        Style().textColor),
+                    Row(
+                      children: [
+                        Style().textSizeColor(e.price, 12, Style().darkColor),
+                        Style().textSizeColor(
+                            ' ฿/จำนวน x ' + e.pcs, 12, Style().darkColor)
+                      ],
+                    )
+                  ],
+                )
+              ],
+            );
+          }).toList()),
+          buildAmount(),
+          (orderStatus == '2') ? buildConfirmMenu() : Container()
+        ],
+      )
+    ]);
   }
 
   buildConfirmMenu() {
@@ -720,7 +802,7 @@ class ShopState extends State<ShopPage> {
             Style().textSizeColor('เหตุผล', 16, Style().textColor),
             'ระบุเหตุผลที่ยกเลิก');
         if (result != null && result[0] == true) {
-          db
+          await db
               .collection('orders')
               .doc(orderId)
               .update({'status': '0'}).then((value) {
@@ -729,6 +811,30 @@ class ShopState extends State<ShopPage> {
               _setData(context.read<AppDataModel>());
             });
           });
+
+          String userToken;
+          String riderToken;
+          await db
+              .collection("users")
+              .doc(orderDetail.customerId)
+              .get()
+              .then((value) {
+            UserOneModel userOneModel =
+                userOneModelFromJson(jsonEncode(value.data()));
+            userToken = userOneModel.token;
+          });
+          await db
+              .collection("drivers")
+              .doc(orderDetail.driver)
+              .get()
+              .then((value) {
+            ShopModel shopModel = shopModelFromJson(jsonEncode(value.data()));
+            riderToken = shopModel.token;
+          });
+          await notifySend(riderToken, "Order ถูกยกเลิกโดย ร้านค้า",
+              "Order:" + orderId + " เหตุผล: " + result[1]);
+          await notifySend(userToken, "Order ถูกยกเลิกโดย ร้านค้า",
+              "Order:" + orderId + " เหตุผล: " + result[1]);
         }
       } else {
         await dialogs.information(
@@ -790,5 +896,9 @@ class ShopState extends State<ShopPage> {
         ],
       ),
     );
+  }
+
+  _callNumber(String number) async {
+    bool res = await FlutterPhoneDirectCaller.callNumber(number);
   }
 }

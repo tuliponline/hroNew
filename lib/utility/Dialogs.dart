@@ -151,7 +151,7 @@ class Dialogs {
             actions: [
               FlatButton(
                   onPressed: () => _confirmResult(true, context),
-                  child: Text('ตกลง')),
+                  child: Style().textSizeColor("ตกลง", 14, Style().darkColor)),
               // FlatButton(
               //     onPressed: () => _confirmResult(false, context),
               //     child: Text('ยกเลิก'))
@@ -213,11 +213,11 @@ class Dialogs {
             actions: [
               TextButton(
                 onPressed: () => _confirmResult(false, context),
-                child: Style().textSizeColor('ยกเลิก', 14, Colors.black),
+                child: Style().textSizeColor('ยกเลิก', 14, Style().darkColor),
               ),
               TextButton(
                 onPressed: () => _confirmResult(true, context),
-                child: Style().textSizeColor('ตกลง', 14, Colors.blueAccent),
+                child: Style().textSizeColor('ตกลง', 14, Style().darkColor),
               ),
             ],
           );
@@ -378,7 +378,7 @@ class Dialogs {
         barrierDismissible: true,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Style().textSizeColor(title, 14, Style().textColor),
+            title: Style().textSizeColor(title, 16, Style().textColor),
             content: SingleChildScrollView(
               child: Row(
                 children: [
@@ -389,7 +389,7 @@ class Dialogs {
                         children: [
                           Style().textFlexibleBackSize(
                             description,
-                            10,
+                            14,
                             14,
                           ),
                         ],

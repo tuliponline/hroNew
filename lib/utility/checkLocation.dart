@@ -84,11 +84,18 @@ Future<bool> doRequestPermission() async {
 Future<Position> checkLocationPosition() async {
   Position position;
   print('getLocation');
-  await Geolocator.getCurrentPosition().then((value) {
-    position = value;
-  }).catchError((error) {
-    print('location Error = ' + error);
-    position = null;
-  });
+
+  try {
+    await Geolocator.getCurrentPosition().then((value) {
+      position = value;
+    }).catchError((error) {
+      print('location Error = ' + error);
+      return null;
+    });
+  } on Exception catch (_) {
+    print('never reached');
+    return null;
+  }
+
   return position;
 }

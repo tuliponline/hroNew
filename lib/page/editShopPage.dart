@@ -295,8 +295,8 @@ class EditShopState extends State<EditShopPage> {
             .then((value) async {
           await updateToken(appDataModel.profileUid, appDataModel.token);
           print('update complete');
-          await notifySend(appDataModel.notifyServer, appDataModel.adminToken,
-              "แก้ไข", "ร้าน " + shopName + " สำเร็จ");
+          await notifySend(
+              appDataModel.adminToken, "แก้ไข", "ร้าน " + shopName + " สำเร็จ");
           await dialogs.information(
               context,
               Style().textSizeColor('สำเร็จ', 14, Style().textColor),
@@ -616,16 +616,17 @@ class EditShopState extends State<EditShopPage> {
                             ? Row(
                                 children: [
                                   Style().textSizeColor(
-                                      'เปิด ', 12, Style().textColor),
+                                      'เปิด ', 10, Style().textColor),
                                   Style().textSizeColor(
                                       open[index], 12, Style().shopDarkColor),
                                   Style().textSizeColor(
-                                      '/ ปิด ', 12, Style().textColor),
+                                      '/ ปิด ', 10, Style().textColor),
                                   Style().textSizeColor(
                                       close[index], 12, Style().shopDarkColor),
                                   IconButton(
                                       icon: Icon(
                                         Icons.edit,
+                                        size: 20,
                                         color: Colors.red,
                                       ),
                                       onPressed: () async {

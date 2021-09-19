@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>167777517376-np6hdf6av41hjl14bsdls80m3oh6k9af.apps.googleusercontent.com</string>
+	<string>167777517376-3c694md7ldbg1dv9vui8q2hb5kpdmm01.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.167777517376-np6hdf6av41hjl14bsdls80m3oh6k9af</string>
+	<string>com.googleusercontent.apps.167777517376-3c694md7ldbg1dv9vui8q2hb5kpdmm01</string>
 	<key>ANDROID_CLIENT_ID</key>
 	<string>167777517376-0pa3ofk3b37ehl81mq9t0gv3qs6mgr44.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
@@ -15,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>hroth.hro</string>
+	<string>hro.hroth</string>
 	<key>PROJECT_ID</key>
 	<string>hro-authen</string>
 	<key>STORAGE_BUCKET</key>
@@ -31,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:167777517376:ios:9e9f4d693de9ab320544a5</string>
+	<string>1:167777517376:ios:2741519a3da806a20544a5</string>
 </dict>
 </plist>

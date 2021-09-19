@@ -15,6 +15,7 @@ import 'package:hro/utility/addLog.dart';
 import 'package:hro/utility/checkDriverOnline.dart';
 import 'package:hro/utility/checkLocation.dart';
 import 'package:hro/utility/getAddressName.dart';
+import 'package:hro/utility/notifySend.dart';
 
 import 'package:hro/utility/snapshot2list.dart';
 import 'package:hro/utility/style.dart';
@@ -57,6 +58,10 @@ class OrderDetailState extends State<OrderDetailPage> {
   LocationSetupModel locationSetup;
   double distanceFinal;
   String distanceString;
+
+  String orderId;
+
+  bool addingOrder = false;
 
   _getRiderOnline(AppDataModel appDataModel) async {
     riderOnline = 0;
@@ -107,12 +112,10 @@ class OrderDetailState extends State<OrderDetailPage> {
 
   Future<Null> _calData(AppDataModel appDataModel) async {
     await _getLocationSetup(context.read<AppDataModel>());
-
     print("startCallData");
 
-    Position position = await checkLocationPosition();
-    double lat = position.latitude;
-    double lng = position.longitude;
+    lat = appDataModel.userLat;
+    lng = appDataModel.userLng;
 
     addressName = await getAddressName(lat, lng);
     print("Get Now LocationCallData");
@@ -165,6 +168,50 @@ class OrderDetailState extends State<OrderDetailPage> {
     });
   }
 
+  _onlyCalData(AppDataModel appDataModel) async {
+    int _allPcs = 0;
+    int _allAmount = 0;
+
+    appDataModel.currentOrder.forEach((element) {
+      _allPcs += int.parse(element.pcs);
+      _allAmount += (int.parse(element.pcs) * int.parse(element.price));
+    });
+
+    appDataModel.allPcs = _allPcs;
+    appDataModel.allPrice = _allAmount;
+
+    amount = appDataModel.allPrice;
+    int costPerKm;
+    List<String> distanceAndCost = await calDistanceAndCostDelivery(
+        appDataModel.latShop,
+        appDataModel.lngShop,
+        lat,
+        lng,
+        int.parse(locationSetup.distanceStart),
+        int.parse(locationSetup.costDeliveryMin),
+        int.parse(locationSetup.costDeliveryPerKm));
+    distanceFinal = double.parse(distanceAndCost[0]);
+    costPerKm = int.parse(distanceAndCost[1]);
+    var distanceFormat = NumberFormat('#0.0#', 'en_US');
+    distanceString = distanceFormat.format(distanceFinal);
+
+    if (appDataModel.allPcs == 1) {
+      costDelivery = costPerKm;
+    } else {
+      int pcs;
+      int addCost;
+
+      pcs = appDataModel.allPcs - 1;
+      addCost =
+          pcs * int.parse(appDataModel.locationSetupModel.costDeliveryPerPcs);
+      costDelivery = costPerKm + addCost;
+    }
+    if (_allPcs < 1) Navigator.pop(context);
+    setState(() {
+      checkRiderOnline = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (checkRiderOnline == false)
@@ -185,8 +232,8 @@ class OrderDetailState extends State<OrderDetailPage> {
                     }),
               ),
               body: Container(
-                child: (addressName == null)
-                    ? Style().circularProgressIndicator(Style().darkColor)
+                child: (addressName == null || addingOrder == true)
+                    ? Center(child: Style().loading())
                     : SingleChildScrollView(
                         child: Column(
                           children: [
@@ -232,12 +279,12 @@ class OrderDetailState extends State<OrderDetailPage> {
                                           ? (riderOnline == 0)
                                               ? ElevatedButton(
                                                   onPressed: () {},
-                                                  child: Style().textBlackSize(
+                                                  child: Style().textSizeColor(
                                                       'ไม่มี Rider Online โปรดสั่งใหม่ภายหลัง',
-                                                      14),
+                                                      14,
+                                                      Colors.white),
                                                   style: ElevatedButton.styleFrom(
-                                                      primary:
-                                                          Colors.grey.shade200,
+                                                      primary: Colors.red,
                                                       shape:
                                                           RoundedRectangleBorder(
                                                               borderRadius:
@@ -251,8 +298,14 @@ class OrderDetailState extends State<OrderDetailPage> {
                                                         .then((value) async {
                                                       if (value == true) {
                                                         if (riderFree > 0) {
-                                                          _addOrder(context.read<
-                                                              AppDataModel>());
+                                                          var result = await Dialogs()
+                                                              .confirm(
+                                                                  context,
+                                                                  "ยืนยันการสั่งซ์้อ",
+                                                                  "ยืนยันการสั่งซื้อ Order ของคุณ");
+                                                          if (result == true)
+                                                            _addOrder(context.read<
+                                                                AppDataModel>());
                                                         } else {
                                                           var result =
                                                               await Dialogs()
@@ -333,32 +386,103 @@ class OrderDetailState extends State<OrderDetailPage> {
               )),
           Column(
             children: appDataModel.currentOrder.map((e) {
+              int index = appDataModel.currentOrder.indexOf(e);
+              int pcs = int.parse(e.pcs);
               print('e = ' + e.productName);
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                      child: ListTile(
-                    title: (e.productName?.isEmpty ?? true)
-                        ? Text('')
-                        : Style().textFlexibleBackSize(
-                            e.productName,
-                            2,
-                            14,
+                      child: Column(
+                    children: [
+                      ListTile(
+                        title: (e.productName?.isEmpty ?? true)
+                            ? Text('')
+                            : Style().textFlexibleBackSize(
+                                (index + 1).toString() + ". " + e.productName,
+                                2,
+                                14,
+                              ),
+                        subtitle: (e.comment?.isEmpty ?? true)
+                            ? null
+                            : Style().textSizeColor(
+                                e.comment, 12, Style().textColor),
+                      ),
+                      Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  padding: EdgeInsets.zero,
+                                  constraints: BoxConstraints(),
+                                  icon: Icon(Icons.remove_circle,
+                                      color: Colors.red, size: 20),
+                                  onPressed: () => setState(() {
+                                    if (pcs > 1) {
+                                      final newValue = pcs - 1;
+                                      appDataModel.currentOrder[index].pcs =
+                                          newValue.clamp(1, 50).toString();
+                                      _onlyCalData(appDataModel)(
+                                          context.read<AppDataModel>());
+                                    }
+                                  }),
+                                ),
+                                Container(
+                                  margin: EdgeInsets.only(left: 5, right: 5),
+                                  child: Style().textSizeColor(
+                                      pcs.toString(), 12, Style().textColor),
+                                ),
+                                IconButton(
+                                  padding: EdgeInsets.zero,
+                                  constraints: BoxConstraints(),
+                                  icon: Icon(
+                                    Icons.add_circle,
+                                    color: Colors.green,
+                                    size: 20,
+                                  ),
+                                  onPressed: () => setState(() {
+                                    final newValue = pcs + 1;
+                                    appDataModel.currentOrder[index].pcs =
+                                        newValue.clamp(1, 50).toString();
+                                    _onlyCalData(appDataModel)(
+                                        context.read<AppDataModel>());
+                                  }),
+                                ),
+                              ],
+                            ),
                           ),
-                    subtitle: (e.comment?.isEmpty ?? true)
-                        ? Text('')
-                        : Style()
-                            .textSizeColor(e.comment, 12, Style().textColor),
+                        ],
+                      )
+                    ],
                   )),
                   Column(
                     children: [
                       Style().textSizeColor(
-                          amount.toString() + ' ฿', 14, Style().textColor),
+                          (int.parse(e.price) * int.parse(e.pcs)).toString() +
+                              ' ฿',
+                          14,
+                          Style().textColor),
                       Style().textSizeColor(e.price + ' ฿/จำนวน x ' + e.pcs, 12,
                           Style().darkColor)
                     ],
-                  )
+                  ),
+                  IconButton(
+                      onPressed: () async {
+                        var result = await Dialogs().confirm(
+                            context, "ลบสินค้า", "ลบสิ้นค้าออกจาก Order");
+                        if (result == true) {
+                          appDataModel.currentOrder.removeAt(index);
+                          _onlyCalData(context.read<AppDataModel>());
+                        }
+                      },
+                      icon: Icon(
+                        Icons.delete,
+                        color: Colors.orange,
+                        size: 20,
+                      ))
                 ],
               );
             }).toList(),
@@ -475,6 +599,9 @@ class OrderDetailState extends State<OrderDetailPage> {
   }
 
   _addOrder(AppDataModel appDataModel) async {
+    addingOrder = true;
+    setState(() {});
+
     List<CartModel> currentOrder;
     currentOrder = appDataModel.currentOrder;
 
@@ -491,7 +618,7 @@ class OrderDetailState extends State<OrderDetailPage> {
         now.hour.toString() +
         ':' +
         now.minute.toString();
-    String orderId = await _getTimeStamp();
+    orderId = await _getTimeStamp();
     await collectionRef.doc(orderId).set({
       'comment': addressComment,
       'customerId': appDataModel.profileUid,
@@ -530,7 +657,7 @@ class OrderDetailState extends State<OrderDetailPage> {
         });
       }
 
-      // await _getDriver();
+      await _getRider(context.read<AppDataModel>());
 
       finalTime = allTime + 15;
       await dialogs.information(
@@ -549,16 +676,19 @@ class OrderDetailState extends State<OrderDetailPage> {
     return dateString;
   }
 
-  sendNotify(AppDataModel appDataModel, String token, String title,
-      String body) async {
-    print("notiserver = " + appDataModel.notifyServer);
-    http.post(
-      Uri.parse(appDataModel.notifyServer),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(
-          <String, String>{'token': token, 'title': title, 'body': body}),
-    );
+  _getRider(AppDataModel appDataModel) async {
+    db
+        .collection("drivers")
+        .where("driverStatus", isEqualTo: "1")
+        .get()
+        .then((value) async {
+      var jsonData = setList2Json(value);
+      List<DriversListModel> driversListModel =
+          driversListModelFromJson(jsonData);
+      driversListModel.forEach((element) async {
+        await notifySend(
+            element.token, "มี Order ใหม่ Rider", "Order:" + orderId);
+      });
+    });
   }
 }

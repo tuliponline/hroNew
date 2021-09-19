@@ -60,6 +60,10 @@ dependencies:
   anim_search_bar: ^2.0.2
   app_settings: ^4.1.1
   flutter_datetime_picker: ^1.5.1
+  flutter_phone_direct_caller: ^2.0.0
+  qr_flutter: ^4.0.0
+  optimized_cached_image: ^3.0.0
+  
 
 
 
@@ -76,7 +80,7 @@ flutter_localizations:
     sdk: flutter
 
 flutter_icons:
-  android: "launcher_icon"
+  android: true
   ios: true
   image_path: "assets/images/hroLogo.png"
 
@@ -108,6 +112,9 @@ flutter:
     - assets/images/taxiIcon.png
     - assets/images/idcard.png
     - assets/sound/slow_spring_board.aiff
+    - assets/images/notiLogo.png
+
+    
 
 
     

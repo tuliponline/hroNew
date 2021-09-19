@@ -4,19 +4,32 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hro/page/addMenu.dart';
 import 'package:hro/page/addRiderPage.dart';
 import 'package:hro/page/addShopPage.dart';
+import 'package:hro/page/adminHomePage.dart';
+import 'package:hro/page/adminManageAd.dart';
+import 'package:hro/page/adminOrder.dart';
+import 'package:hro/page/adminSystem.dart';
 import 'package:hro/page/allProductPage.dart';
 import 'package:hro/page/editMenu.dart';
 import 'package:hro/page/editRiderPage.dart';
 import 'package:hro/page/editShopPage.dart';
 import 'package:hro/page/frist.dart';
+import 'package:hro/page/googleMapPage.dart';
 import 'package:hro/page/homePage.dart';
 import 'package:hro/page/menu.dart';
+import 'package:hro/page/order2rider.dart';
 import 'package:hro/page/orderDetailPage.dart';
+import 'package:hro/page/orderTrack.dart';
 import 'package:hro/page/profile.dart';
+import 'package:hro/page/qrCodeRider2User.dart';
+import 'package:hro/page/rating4customer.dart';
+import 'package:hro/page/register.dart';
 import 'package:hro/page/riderHistoryPage.dart';
 import 'package:hro/page/riderPage.dart';
-import 'package:hro/page/riderStarsPage.dart';
+import 'package:hro/page/riderReview.dart';
 import 'package:hro/page/shop.dart';
+import 'package:hro/page/shopHistoryPage.dart';
+import 'package:hro/page/shopReview.dart';
+import 'package:hro/page/showFristPage.dart';
 import 'package:hro/page/showHomePage.dart';
 import 'package:hro/page/showProduct.dart';
 import 'package:hro/page/splash.dart';
@@ -75,7 +88,7 @@ class MyApp extends StatelessWidget {
       create: (_) => AppDataModel(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'เฮาะ อากาศเดลิเวอรี่',
+        title: 'เฮาะ เดลิเวอรี่',
         routes: {
           '/splash-page': (context) => SplashPage(),
           '/home-page': (context) => HomePage(),
@@ -96,7 +109,20 @@ class MyApp extends StatelessWidget {
           "/allProduct-page": (context) => AllProductsPage(),
           "/showProduct-page": (context) => ShowProductPage(),
           "/orderDetail-page": (context) => OrderDetailPage(),
-          "/riderSrars-page": (context) => RiderStarsPage(),
+          "/order2Rider-page": (context) => Order2RiderPage(),
+          "/qrCodeRider2User-page": (context) => QrCodeRider2UserPage(),
+          "/orderTrack-page": (context) => OrderTrackPage(),
+          "/shopReview-page": (context) => ShopReviewPage(),
+          "/riderReview-page": (context) => RiderReviewPage(),
+          "/Rating4Customer-page": (context) => Rating4CustomerPage(),
+          "/shopHistory-page": (context) => ShopHistoryPage(),
+          "/adminHome-page": (context) => AdminHomePage(),
+          "/asminSystem-page": (context) => AdminSystemPage(),
+          "/adminOrder-page": (context) => AdminOrderPage(),
+          "/register-page": (context) => RegisterPage(),
+          "/showFrist-page": (context) => ShowFristPage(),
+          "/googleMap-page": (context) => GoogleMapPage(),
+          "/adminAdmanage-page": (context) => AdminAdManagePage(),
         },
         initialRoute: initialRoute,
       ),

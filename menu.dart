@@ -45,7 +45,7 @@ class MenuState extends State<MenuPage> {
 
   bool updateTing = false;
 
-  int menuCount = 0 ;
+  int menuCount = 0;
 
   _getProduct(AppDataModel appDataModel) async {
     CollectionReference products =
@@ -92,8 +92,8 @@ class MenuState extends State<MenuPage> {
                 backgroundColor: Colors.white,
                 bottomOpacity: 0.0,
                 elevation: 0.0,
-                title: Style()
-                    .textSizeColor('สินค้า $menuCount รายการ', 16, Style().darkColor),
+                title: Style().textSizeColor(
+                    'สินค้า $menuCount รายการ', 16, Style().darkColor),
                 actions: [
                   IconButton(
                       icon: Icon(
@@ -104,7 +104,6 @@ class MenuState extends State<MenuPage> {
                         getProductsStatus = false;
                         _getProduct(context.read<AppDataModel>());
                       }),
-
                   IconButton(
                       icon: Icon(
                         FontAwesomeIcons.plusCircle,
@@ -259,12 +258,14 @@ class MenuState extends State<MenuPage> {
                                             color: Colors.deepOrange,
                                           ),
                                           onPressed: () async {
-                                           appDataModel.productEditId = e.productId;
+                                            appDataModel.productEditId =
+                                                e.productId;
                                             var result =
                                                 await Navigator.pushNamed(
                                                     context,
                                                     "/editProduct-page");
-                                            if (result != null || result == true) {
+                                            if (result != null ||
+                                                result == true) {
                                               setState(() {
                                                 getProductsStatus = false;
                                               });
@@ -1009,8 +1010,8 @@ class MenuState extends State<MenuPage> {
         await products.add(data).then((value) async {
           print('doc Id = ' + value.id);
           docId = value.id.toString();
-          await notifySend(appDataModel.notifyServer, appDataModel.adminToken,
-              "สินค้าใหม่", "สินค้า " + _nameFood.text + " รอยืนยัน");
+          await notifySend(appDataModel.adminToken, "สินค้าใหม่",
+              "สินค้า " + _nameFood.text + " รอยืนยัน");
           await products
               .doc(docId)
               .update({'product_id': docId}).then((value) async {

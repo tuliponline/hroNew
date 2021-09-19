@@ -160,8 +160,8 @@ class AddMenuState extends State<AddMenuPage> {
                               offset: _nameFood.text.length))),
                   onChanged: (value) {
                     setState(() {
-                      _nameCheck = textLengthRegex(_nameFood.text, 4);
                       _nameFood.text = value;
+                      _nameCheck = textLengthRegex(_nameFood.text, 4);
                     });
                   },
                 ),
@@ -215,9 +215,9 @@ class AddMenuState extends State<AddMenuPage> {
                               offset: _detailFood.text.length))),
                   onChanged: (value) {
                     setState(() {
-                      _detailCheck = textLengthRegex(_detailFood.text, 8);
                       print("detailCheck = " + _detailCheck.toString());
                       _detailFood.text = value;
+                      _detailCheck = textLengthRegex(_detailFood.text, 8);
                     });
                   },
                 ),
@@ -272,8 +272,8 @@ class AddMenuState extends State<AddMenuPage> {
                               offset: _priceFood.text.length))),
                   onChanged: (value) {
                     setState(() {
-                      _priceCheck = onlyNumberRegex(_priceFood.text);
                       _priceFood.text = value;
+                      _priceCheck = onlyNumberRegex(_priceFood.text);
                     });
                   },
                 ),

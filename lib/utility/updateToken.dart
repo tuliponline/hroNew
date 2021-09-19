@@ -62,3 +62,14 @@ Future<Null> updateLocationDrivers(String uid, String location) async {
         .catchError((onError) => print("update token User Error $onError"));
   }
 }
+
+Future<Null> updateOs(String uid, String os) async {
+  FirebaseFirestore db = FirebaseFirestore.instance;
+
+  await db
+      .collection("users")
+      .doc(uid)
+      .update({"os": os})
+      .then((value) => print("update Os User Success"))
+      .catchError((onError) => print("update Os User Error $onError"));
+}

@@ -264,8 +264,8 @@ class AddShopState extends State<AddShopPage> {
               .then((value) async {
             await updateToken(appDataModel.profileUid, appDataModel.token);
             print('addNewUser complete');
-            await notifySend(appDataModel.notifyServer, appDataModel.adminToken,
-                "ร้านค้าใหม่", "ร้าน " + shopName + " รอยืนยัน");
+            await notifySend(appDataModel.adminToken, "ร้านค้าใหม่",
+                "ร้าน " + shopName + " รอยืนยัน");
             await dialogs.information(
                 context,
                 Style().textSizeColor('สำเร็จ', 14, Style().textColor),

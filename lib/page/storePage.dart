@@ -90,9 +90,9 @@ class StoreState extends State<StorePage> {
     await _calData(context.read<AppDataModel>());
 
     //Get location
-    Position position = await checkLocationPosition();
-    lat1 = position.latitude;
-    lng1 = position.longitude;
+
+    lat1 = appDataModel.userLat;
+    lng1 = appDataModel.userLng;
     appDataModel.latYou = lat1;
     appDataModel.lngYou = lng1;
 
@@ -177,9 +177,9 @@ class StoreState extends State<StorePage> {
     appDataModel.latShop = double.parse(locationLatLng[0]);
     appDataModel.lngShop = double.parse(locationLatLng[1]);
     await _getLocationSetup(context.read<AppDataModel>());
-    Position position = await checkLocationPosition();
-    double latYou = position.latitude;
-    double lngSou = position.longitude;
+
+    double latYou = appDataModel.userLat;
+    double lngSou = appDataModel.userLng;
     int costPerKm;
     List<String> distanceAndCost = await calDistanceAndCostDelivery(
         appDataModel.latShop,
@@ -203,7 +203,7 @@ class StoreState extends State<StorePage> {
         builder: (context, appDataModel, child) => Scaffold(
               body: Container(
                 child: (storeData == null)
-                    ? Style().circularProgressIndicator(Style().darkColor)
+                    ? Center(child: Style().loading())
                     : SingleChildScrollView(
                         child: buildShowProduct(context.read<AppDataModel>()),
                       ),
@@ -400,15 +400,16 @@ class StoreState extends State<StorePage> {
                             : Container(
                                 width: appDataModel.screenW * 0.9,
                                 child: ElevatedButton(
-                                  onPressed: () {
+                                  onPressed: () async {
                                     for (CartModel orderItem
                                         in appDataModel.currentOrder) {
                                       print(
                                           'delete = ' + jsonEncode(orderItem));
                                     }
 
-                                    Navigator.pushNamed(
+                                    await Navigator.pushNamed(
                                         context, "/orderDetail-page");
+                                    setState(() {});
                                   },
                                   child: Row(
                                     mainAxisAlignment:

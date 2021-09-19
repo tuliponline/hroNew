@@ -6,13 +6,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hro/model/AppDataModel.dart';
+import 'package:hro/model/UserListMudel.dart';
 import 'package:hro/model/UserOneModel.dart';
+import 'package:hro/model/allShopModel.dart';
 import 'package:hro/model/driverModel.dart';
 import 'package:hro/model/orderModel.dart';
+import 'package:hro/model/shopModel.dart';
 import 'package:hro/page/showHomePage.dart';
 import 'package:hro/utility/Dialogs.dart';
 import 'package:hro/utility/addLog.dart';
 import 'package:hro/utility/getTimeNow.dart';
+import 'package:hro/utility/notifySend.dart';
 import 'package:hro/utility/snapshot2list.dart';
 import 'package:hro/utility/style.dart';
 import 'package:provider/provider.dart';
@@ -41,6 +45,7 @@ class RiderState extends State<RiderPage> {
 
   _setData(AppDataModel appDataModel) async {
     userOneModel = appDataModel.userOneModel;
+
     await FirebaseFirestore.instance
         .collection('drivers')
         .doc(userOneModel.uid)
@@ -50,8 +55,9 @@ class RiderState extends State<RiderPage> {
         .doc(userOneModel.uid)
         .get()
         .then((value) async {
+      print("driverData = " + jsonEncode(value.data()));
       driversModel = driversModelFromJson(jsonEncode(value.data()));
-
+      appDataModel.driverData = driversModel;
       if (driversModel.driverStatus == "1") {
         inWork = false;
       } else {
@@ -74,6 +80,19 @@ class RiderState extends State<RiderPage> {
   }
 
   _getOrders(AppDataModel appDataModel) async {
+    await db.collection("drivers").get().then((value) {
+      var jsonData = setList2Json(value);
+      appDataModel.allRiderData = driversListModelFromJson(jsonData);
+    });
+    await db.collection("users").get().then((value) {
+      var jsonData = setList2Json(value);
+      appDataModel.alluserData = userListModelFromJson(jsonData);
+    });
+
+    await db.collection("shops").get().then((value) {
+      var jsonData = setList2Json(value);
+      appDataModel.allShopData = allShopModelFromJson(jsonData);
+    });
     await db
         .collection('orders')
         .where('driver', isEqualTo: driversModel.driverId)
@@ -114,16 +133,9 @@ class RiderState extends State<RiderPage> {
       print('Got a message whilst in the foreground!');
       print('Message data: ${message.data}');
       if (message.notification != null) {
-        print('Message also contained a notification: ${message.notification}');
-        // await normalDialog(context, message.notification.title + '',
-        //      message.notification.body);
-        print(message.notification.title);
-        if (message.notification.title.contains('Rider')) {
-          print('Shop');
-          setState(() {
-            getDriverData = false;
-          });
-        }
+        setState(() {
+          getDriverData = false;
+        });
       }
     });
   }
@@ -150,9 +162,9 @@ class RiderState extends State<RiderPage> {
                       actions: [
                         IconButton(
                             icon: Icon(
-                              FontAwesomeIcons.clipboardCheck,
-                              color: Style().darkColor,
-                              size: 20,
+                              Icons.star,
+                              color: Colors.orange,
+                              size: 30,
                             ),
                             onPressed: () async {
                               Navigator.pushNamed(
@@ -202,7 +214,7 @@ class RiderState extends State<RiderPage> {
                       : ListView(
                           children: [
                             Column(
-                              // mainAxisAlignment: MainAxisAlignment.center,
+                              // mainAxisAlignment: MainAxisAlignment.center,noti
                               children: [
                                 Container(
                                   padding: EdgeInsets.only(
@@ -214,7 +226,10 @@ class RiderState extends State<RiderPage> {
                                   child: SingleChildScrollView(
                                     child: (orderWaiteList.length == null ||
                                             inWork == true)
-                                        ? Container()
+                                        ? (appDataModel.loginLevel == "3")
+                                            ? buildOrderWaite(
+                                                context.read<AppDataModel>())
+                                            : Container()
                                         : buildOrderWaite(
                                             context.read<AppDataModel>()),
                                   ),
@@ -364,21 +379,21 @@ class RiderState extends State<RiderPage> {
             List<String> locationLatLng = e.location.split(',');
             appDataModel.latOrder = double.parse(locationLatLng[0]);
             appDataModel.lngOrder = double.parse(locationLatLng[1]);
-
-            Navigator.pushNamed(context, "/order2driver-page");
+            appDataModel.lastPage = "rider";
+            Navigator.pushNamed(context, "/order2Rider-page");
           },
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10.0),
+              borderRadius: BorderRadius.circular(15.0),
               color: (e.status == '9' ||
                       e.status == '1' ||
                       e.status == '2' ||
                       e.status == '3' ||
                       e.status == '4')
-                  ? Color.fromRGBO(255, 187, 147, 0.8)
+                  ? Color.fromRGBO(244, 67, 54, 0.5)
                   : Colors.white,
             ),
-            margin: EdgeInsets.only(top: 8, left: 8, right: 8),
+            margin: EdgeInsets.only(top: 2, left: 8, right: 8),
             child: Row(
               children: [
                 Expanded(
@@ -407,8 +422,8 @@ class RiderState extends State<RiderPage> {
                             );
                             print("Resulr = $result");
                             if (result == true) {
-                              _confirmOrder(
-                                  context.read<AppDataModel>(), e.orderId);
+                              _confirmOrder(context.read<AppDataModel>(),
+                                  e.orderId, e.shopId, e.customerId);
                             }
                           },
                           child: Row(
@@ -440,7 +455,9 @@ class RiderState extends State<RiderPage> {
                                           print('cancelOrder By Driver');
                                           _cancelOrder(
                                               context.read<AppDataModel>(),
-                                              e.orderId);
+                                              e.orderId,
+                                              e.customerId,
+                                              e.shopId);
                                         },
                                         child: Row(
                                           mainAxisAlignment:
@@ -647,8 +664,8 @@ class RiderState extends State<RiderPage> {
             List<String> locationLatLng = e.location.split(',');
             appDataModel.latOrder = double.parse(locationLatLng[0]);
             appDataModel.lngOrder = double.parse(locationLatLng[1]);
-
-            Navigator.pushNamed(context, "/order2driver-page");
+            appDataModel.lastPage = "rider";
+            Navigator.pushNamed(context, "/order2Rider-page");
           },
           child: Container(
             decoration: BoxDecoration(
@@ -658,7 +675,7 @@ class RiderState extends State<RiderPage> {
                       e.status == '2' ||
                       e.status == '3' ||
                       e.status == '4')
-                  ? Color.fromRGBO(255, 187, 147, 0.8)
+                  ? Color.fromRGBO(244, 67, 54, 0.5)
                   : Colors.white,
             ),
             margin: EdgeInsets.only(top: 2, left: 8, right: 8),
@@ -690,8 +707,8 @@ class RiderState extends State<RiderPage> {
                             );
                             print("Resulr = $result");
                             if (result == true) {
-                              _confirmOrder(
-                                  context.read<AppDataModel>(), e.orderId);
+                              _confirmOrder(context.read<AppDataModel>(),
+                                  e.orderId, e.shopId, e.customerId);
                             }
                           },
                           child: Row(
@@ -723,7 +740,9 @@ class RiderState extends State<RiderPage> {
                                           print('cancelOrder By Driver');
                                           _cancelOrder(
                                               context.read<AppDataModel>(),
-                                              e.orderId);
+                                              e.orderId,
+                                              e.customerId,
+                                              e.shopId);
                                         },
                                         child: Row(
                                           mainAxisAlignment:
@@ -905,8 +924,20 @@ class RiderState extends State<RiderPage> {
     });
   }
 
-  _cancelOrder(AppDataModel appDataModel, String orderId) async {
+  _cancelOrder(
+      AppDataModel appDataModel, String orderId, customerId, shopId) async {
     String onlineTime = await getTimeStampNow();
+    String userToken;
+    String shopToken;
+    await db.collection("users").doc(customerId).get().then((value) {
+      UserOneModel userOneModel =
+          userOneModelFromJson(jsonEncode(value.data()));
+      userToken = userOneModel.token;
+    });
+    await db.collection("shops").doc(shopId).get().then((value) {
+      ShopModel shopModel = shopModelFromJson(jsonEncode(value.data()));
+      shopToken = shopModel.token;
+    });
     db.collection('orders').doc(orderId).get().then((value) async {
       OrderDetail orderDetail = orderDetailFromJson(jsonEncode(value.data()));
       if (orderDetail.status == '2' || orderDetail.status == '4') {
@@ -925,7 +956,11 @@ class RiderState extends State<RiderPage> {
                   .collection('drivers')
                   .doc(userOneModel.uid)
                   .update({'driverStatus': '1', 'onlineTime': onlineTime}).then(
-                      (value) {
+                      (value) async {
+                await notifySend(shopToken, "Order ถูกยกเลิกโดย Rider",
+                    "Order:" + orderId + " เหตุผล: " + result[1]);
+                await notifySend(userToken, "Order ถูกยกเลิกโดย Rider",
+                    "Order:" + orderId + " เหตุผล: " + result[1]);
                 getDriverData = false;
                 setState(() {});
               });
@@ -946,9 +981,21 @@ class RiderState extends State<RiderPage> {
     // print(result);
   }
 
-  _confirmOrder(AppDataModel appDataModel, String orderId) async {
+  _confirmOrder(
+      AppDataModel appDataModel, String orderId, shopId, customerId) async {
     print("order Id = " + orderId);
-    db
+    String userToken;
+    String shopToken;
+    await db.collection("users").doc(customerId).get().then((value) {
+      UserOneModel userOneModel =
+          userOneModelFromJson(jsonEncode(value.data()));
+      userToken = userOneModel.token;
+    });
+    await db.collection("shops").doc(shopId).get().then((value) {
+      ShopModel shopModel = shopModelFromJson(jsonEncode(value.data()));
+      shopToken = shopModel.token;
+    });
+    await db
         .collection('drivers')
         .doc(appDataModel.userOneModel.uid)
         .get()
@@ -956,14 +1003,7 @@ class RiderState extends State<RiderPage> {
       driversModel = driversModelFromJson(jsonEncode(value.data()));
       print('DriverStatusBefor Confirm = ' + driversModel.driverStatus);
 
-      if (driversModel.driverStatus != "1") {
-        await Dialogs().information(
-            context,
-            Style().textBlackSize("รับ Order ไม่ได้", 14),
-            Style().textBlackSize("คุณกำลังส่ง Order อื่นอยู่", 12));
-        getDriverData = false;
-        setState(() {});
-      } else {
+      if (driversModel.driverStatus == "1" || appDataModel.loginLevel == "3") {
         db.collection('orders').doc(orderId).get().then((value) async {
           OrderDetail orderDetail =
               orderDetailFromJson(jsonEncode(value.data()));
@@ -980,9 +1020,14 @@ class RiderState extends State<RiderPage> {
                   .doc(userOneModel.uid)
                   .update({"driverStatus": "2"}).then((value) async {
                 await addLog(orderId, '2', 'driver', userOneModel.uid, '')
-                    .then((value) {
+                    .then((value) async {
                   inWork = true;
                   getDriverData = false;
+                  await notifySend(
+                      shopToken, "มี Order ใหม่ Shop", "Order:" + orderId);
+                  await notifySend(userToken, "Rider ตอบรับ Orderแล้ว",
+                      "Rider: " + driversModel.driverName);
+
                   setState(() {});
                 });
               });
@@ -991,13 +1036,20 @@ class RiderState extends State<RiderPage> {
             await dialogs.information(
                 context,
                 Style().textSizeColor('ผิดพลาด', 14, Style().textColor),
-                Style()
-                    .textSizeColor('Order หมดเวลาแล้ว', 12, Style().textColor));
+                Style().textSizeColor('Order นี้ถูกจัดส่งโดยRiderท่านอื่นแล้ว',
+                    12, Style().textColor));
 
             getDriverData = false;
             setState(() {});
           }
         });
+      } else {
+        await Dialogs().information(
+            context,
+            Style().textBlackSize("รับ Order ไม่ได้", 14),
+            Style().textBlackSize("คุณกำลังส่ง Order อื่นอยู่", 12));
+        getDriverData = false;
+        setState(() {});
       }
     });
   }

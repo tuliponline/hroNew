@@ -57,6 +57,11 @@ class ProfileState extends State<ProfilePage> {
     userOneModel = appDataModel.userOneModel;
     print("uid Profile=" + userOneModel.uid);
 
+    if (userOneModel.photoUrl == null) {
+      userOneModel.photoUrl =
+          "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png";
+    }
+
     _nameController.text = userOneModel.name;
     _phoneController.text = userOneModel.phone;
     _emailController.text = userOneModel.email;

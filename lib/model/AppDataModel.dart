@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:hro/model/AppConfigModel.dart';
+import 'package:hro/model/UserListMudel.dart';
 import 'package:hro/model/UserOneModel.dart';
 import 'package:hro/model/allShopModel.dart';
 import 'package:hro/model/driverModel.dart';
@@ -22,6 +23,10 @@ class AppDataModel {
   var dateShowFormat = DateFormat("dd/MM/yyyy");
   var dateSystemFormat = DateFormat("yyyy-MM-dd");
 
+  String loginLevel = "1";
+
+  bool locationStatus = false;
+
   double screenW;
   String os;
   double appVersion, serverVersion;
@@ -36,22 +41,26 @@ class AppDataModel {
   AppConfigModel appConfigModel;
   UserOneModel userOneModel;
 
+  List<UserListModel> alluserData;
+  List<DriversListModel> allRiderData;
+  List<ProductsModel> allProductData;
+
   Color cols = Color.fromARGB(1, 34, 150, 243);
   String playStoreUrl =
       "https://play.google.com/store/apps/details?id=hroth.hro";
 
   String projectVersion;
-
   double distanceLimit;
-
   int costDelivery;
-
   int allProductCurrentPage;
+
+  String qrAmount;
 
   String ratingOrderId, ratingShopId, ratingRiderId, ratingCustomerId;
   String noTiServer = 'https://us-central1-hro-authen.cloudfunctions.net/hello';
   String notifyServer =
       "https://us-central1-hro-authen.cloudfunctions.net/hello/notify";
+  String qrGenServer = "https://qrgen.paystationth.com/";
 
   //location and costDelivery Setup
   LocationSetupModel locationSetupModel;
@@ -61,6 +70,7 @@ class AppDataModel {
   String adminToken = "";
 
   List<RatingListModel> shopRatingList;
+  List<RatingListModel> riderRatingList;
 
   String productEditId;
 
@@ -114,6 +124,8 @@ class AppDataModel {
   List<ProductsModel> storeProductsData;
 
   bool shopOpen;
+
+  String lastPage;
 
   //----Order
   String _orderIdSelected;

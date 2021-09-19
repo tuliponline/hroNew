@@ -21,6 +21,7 @@ class UserOneModel {
     this.email,
     this.status,
     this.token,
+    this.os,
   });
 
   String uid;
@@ -33,6 +34,7 @@ class UserOneModel {
   String email;
   String status;
   String token;
+  String os;
 
   factory UserOneModel.fromJson(Map<String, dynamic> json) => UserOneModel(
         uid: json["uid"],
@@ -45,6 +47,7 @@ class UserOneModel {
         email: json["email"],
         status: json["status"],
         token: json["token"],
+        os: json["os"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -58,5 +61,6 @@ class UserOneModel {
         "email": email,
         "status": status,
         "token": token,
+        "os": os,
       };
 }

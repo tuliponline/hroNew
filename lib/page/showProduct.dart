@@ -278,8 +278,10 @@ class ShowProductState extends State<ShowProductPage> {
                           color: Colors.red,
                         ),
                         onPressed: () => setState(() {
-                          final newValue = pcs - 1;
-                          pcs = newValue.clamp(0, 50);
+                          if (pcs > 1) {
+                            final newValue = pcs - 1;
+                            pcs = newValue.clamp(1, 50);
+                          }
                         }),
                       ),
                       Style()

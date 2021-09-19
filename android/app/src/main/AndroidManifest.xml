@@ -2,14 +2,17 @@
     package="hroth.hro">
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <queries>
+    <package android:name="com.google.android.apps.maps" />
+  </queries>
    <application
         android:usesCleartextTraffic="true"
-        android:icon="@mipmap/launcher_icon"
-        android:label="เฮาะ อากาศเดลิเวอรี่">
+        android:icon="@mipmap/ic_launcher"
+        android:label="เฮาะ">
 
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAdwP51gQxERPArwd8N3KRmm--gvUGj88M"/>
+            
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

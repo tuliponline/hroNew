@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 
 class Style {
+  Color primaryColorHro = Color(0xff039be5);
+
   Color primaryColor = Color(0xff2bceb6);
   Color lightColor = Color(0xff6fffe8);
-  Color darkColor = Color(0xff009c86);
+  Color darkColor = Color(0xff039be5);
 
   Color secondColor = Color(0xffffc648);
   Color secondLightColor = Color(0xfffff97a);

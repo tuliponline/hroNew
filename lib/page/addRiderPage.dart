@@ -265,8 +265,8 @@ class AddRiderState extends State<AddRiderPage> {
               .set(data)
               .then((value) async {
             print('addNewDriver complete');
-            await notifySend(appDataModel.notifyServer, appDataModel.adminToken,
-                "Riderใหม่", "Rider " + name + " รอยืนยัน");
+            await notifySend(appDataModel.adminToken, "Riderใหม่",
+                "Rider " + name + " รอยืนยัน");
             await dialogs.information(
                 context,
                 Style().textSizeColor('สำเร็จ', 14, Style().textColor),

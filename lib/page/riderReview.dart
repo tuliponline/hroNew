@@ -1,0 +1,226 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:hro/model/AppDataModel.dart';
+import 'package:hro/model/UserListMudel.dart';
+import 'package:hro/model/ratingModel.dart';
+import 'package:hro/utility/snapshot2list.dart';
+import 'package:hro/utility/style.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:collection/collection.dart';
+
+class RiderReviewPage extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return RiderReviewState();
+  }
+}
+
+class RiderReviewState extends State<RiderReviewPage> {
+  FirebaseFirestore db = FirebaseFirestore.instance;
+
+  _readUserFromDB(AppDataModel appDataModel) async {
+    await db.collection("users").get().then((value) {
+      var jsonData = setList2Json(value);
+      appDataModel.alluserData = userListModelFromJson(jsonData);
+    });
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _readUserFromDB(context.read<AppDataModel>());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AppDataModel>(
+        builder: (context, appDataModel, child) => Scaffold(
+              appBar: AppBar(
+                title:
+                    Style().textSizeColor("รีวิว Rider", 16, Style().darkColor),
+                backgroundColor: Colors.white,
+                bottomOpacity: 0.0,
+                elevation: 0.0,
+                leading: IconButton(
+                    icon: Icon(
+                      Icons.arrow_back_ios,
+                      color: Style().darkColor,
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    }),
+              ),
+              body: (appDataModel.alluserData == null)
+                  ? Center(child: Style().loading())
+                  : Container(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            buildSumRating(context.read<AppDataModel>()),
+                            Container(
+                              margin: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                      width: 0.3, color: Colors.grey),
+                                ),
+                              ),
+                            ),
+                            showRatingAndComment(context.read<AppDataModel>())
+                          ],
+                        ),
+                      ),
+                    ),
+            ));
+  }
+
+  buildSumRating(AppDataModel appDataModel) {
+    List<int> sumRatingAll = [0, 0, 0, 0, 0];
+    appDataModel.riderRatingList.forEach((element) {
+      double ratingNow = double.parse(element.shopRate);
+      if (ratingNow == 1.0) {
+        sumRatingAll[0] += 1;
+      } else if (ratingNow == 2.0) {
+        sumRatingAll[1] += 1;
+      } else if (ratingNow == 3.0) {
+        sumRatingAll[2] += 1;
+      } else if (ratingNow == 4.0) {
+        sumRatingAll[3] += 1;
+      } else if (ratingNow == 5.0) {
+        sumRatingAll[4] += 1;
+      }
+    });
+
+    print(sumRatingAll);
+
+    return Container(
+      margin: EdgeInsets.all(3),
+      child: StaggeredGridView.countBuilder(
+          shrinkWrap: true,
+          primary: false,
+          crossAxisCount: 5,
+          staggeredTileBuilder: (int index) => StaggeredTile.fit(1),
+          mainAxisSpacing: 3,
+          crossAxisSpacing: 3,
+          padding: EdgeInsets.only(top: 0),
+          itemCount: sumRatingAll.length,
+          itemBuilder: (BuildContext context, int index) {
+            print("index = " + index.toString());
+            double initialRating = double.parse((index + 1).toString());
+            return Container(
+                width: 60,
+                margin: EdgeInsets.only(left: 5, right: 5, top: 5),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(28),
+                      blurRadius: 5,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
+                padding: EdgeInsets.all(5),
+                child: Column(
+                  children: [
+                    RatingBar.builder(
+                      ignoreGestures: true,
+                      itemSize: 10,
+                      initialRating: initialRating,
+                      minRating: 1,
+                      direction: Axis.horizontal,
+                      allowHalfRating: false,
+                      itemCount: index + 1,
+                      itemPadding: EdgeInsets.symmetric(horizontal: 0.0),
+                      itemBuilder: (context, _) => Icon(
+                        Icons.star,
+                        color: Colors.amber,
+                      ),
+                      onRatingUpdate: (rating) {},
+                    ),
+                    Style().textSizeColor(
+                        sumRatingAll[index].toString(), 12, Style().darkColor),
+                  ],
+                ));
+          }),
+    );
+  }
+
+  showRatingAndComment(AppDataModel appDataModel) {
+    List<RatingListModel> ratingListModel;
+    ratingListModel = appDataModel.riderRatingList;
+
+    return Container(
+      margin: EdgeInsets.only(right: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: ratingListModel.mapIndexed((int index, element) {
+          var date =
+              DateTime.fromMillisecondsSinceEpoch(int.parse(element.orderId));
+          var formattedDate = DateFormat('dd/MM/yyyy').format(date);
+
+          double riderRate = double.parse(element.riderRate);
+          int initialRating = riderRate.toInt();
+
+          String user;
+          appDataModel.alluserData.forEach((e) {
+            if (e.uid == element.customerId) user = e.name;
+          });
+          return Container(
+              margin: EdgeInsets.only(left: 20, top: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Style().textBlackSize(formattedDate, 12),
+                      Style().textBlackSize(user.substring(0, 4) + "xxxx", 12)
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      RatingBar.builder(
+                        ignoreGestures: true,
+                        itemSize: 20,
+                        initialRating: riderRate,
+                        minRating: 1,
+                        direction: Axis.horizontal,
+                        allowHalfRating: false,
+                        itemCount: initialRating,
+                        itemPadding: EdgeInsets.symmetric(horizontal: 0.0),
+                        itemBuilder: (context, _) => Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                        ),
+                        onRatingUpdate: (rating) {},
+                      ),
+                      Style().textBlackSize(" " + element.shopRate, 12)
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [Style().textBlackSize(element.riderComment, 14)],
+                  ),
+                  Container(
+                    margin: EdgeInsets.all(0),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(width: 0.3, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                ],
+              ));
+        }).toList(),
+      ),
+    );
+  }
+}

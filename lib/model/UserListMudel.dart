@@ -23,6 +23,7 @@ class UserListModel {
     this.email,
     this.status,
     this.token,
+    this.os,
   });
 
   String uid;
@@ -35,6 +36,7 @@ class UserListModel {
   String email;
   String status;
   String token;
+  String os;
 
   factory UserListModel.fromJson(Map<String, dynamic> json) => UserListModel(
         uid: json["uid"],
@@ -47,6 +49,7 @@ class UserListModel {
         email: json["email"],
         status: json["status"],
         token: json["token"],
+        os: json["os"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -60,5 +63,6 @@ class UserListModel {
         "email": email,
         "status": status,
         "token": token,
+        "os": os,
       };
 }

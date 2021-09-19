@@ -5,15 +5,13 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>เฮาะ อากาศเดลิเวอรี่</string>
+	<string>เฮาะ</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>hro</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -27,24 +25,32 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.167777517376-np6hdf6av41hjl14bsdls80m3oh6k9af</string>
+				<string>com.googleusercontent.apps.167777517376-3c694md7ldbg1dv9vui8q2hb5kpdmm01</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSApplicationCategoryType</key>
+	<string>I fixed it! I was using on Info.plist this permission NSLocationAlwaysUsageDescription together with the NSLocationWhenInUseUsageDescription. But the app is set to target iOS 8, Flutter default. But NSLocationAlwaysUsageDescription should only be used with iOS 10+. This was messing up the permission prompt on the iOS app. I removed and it worked, asked the permission and I could get the location. I hope this can help you guys too.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to Photo Camera for upload image</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string></string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This app needs access to location when in the background.</string>
+	<string>This app needs access to location when in the background for update location in map to delivery.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to location when open.</string>
+	<string>This app needs access to location when open  for calculate cost and location in map to delivery .</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string></string>
+	<string>This app needs access to Photo Gallery for upload image</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
@@ -69,9 +75,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string></string>
-	<key>LSApplicationCategoryType</key>
-	<string>I fixed it! I was using on Info.plist this permission NSLocationAlwaysUsageDescription together with the NSLocationWhenInUseUsageDescription. But the app is set to target iOS 8, Flutter default. But NSLocationAlwaysUsageDescription should only be used with iOS 10+. This was messing up the permission prompt on the iOS app. I removed and it worked, asked the permission and I could get the location. I hope this can help you guys too.</string>
 </dict>
 </plist>

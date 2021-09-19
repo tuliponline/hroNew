@@ -1,11 +1,11 @@
 import 'dart:convert';
+import 'package:hro/model/AppDataModel.dart';
 import 'package:http/http.dart' as http;
 
-Future<Null>notifySend(String server,String token, String title,
-    String body) async {
-  print("notiserver = " + server);
+Future<Null> notifySend(String token, String title, String body) async {
+  print("notiserver = " + AppDataModel().notifyServer);
   http.post(
-    Uri.parse(server),
+    Uri.parse(AppDataModel().notifyServer),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },

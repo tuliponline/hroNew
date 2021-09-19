@@ -46,6 +46,21 @@ class AllProductState extends State<AllProductsPage> {
         .then((value) async {
       var jsonData = await setList2Json(value);
       _productsDataRow = productsModelFromJson(jsonData);
+
+      List<dynamic> orderRemove = [];
+      _productsDataRow.asMap().forEach((i, e) {
+        appDataModel.allShopData.forEach((element) {
+          if (e.shopUid == element.shopUid) {
+            if (element.shopStatus == "2") {
+              orderRemove.add(e);
+            }
+          }
+        });
+      });
+      orderRemove.forEach((element) {
+        _productsDataRow.remove(element);
+      });
+
       _productsData = _productsDataRow;
       print("productDataCount = " + _productsData.length.toString());
       productCount = _productsData.length;
@@ -105,7 +120,7 @@ class AllProductState extends State<AllProductsPage> {
                 ],
               ),
               body: (_productsData == null)
-                  ? Style().circularProgressIndicator(Style().darkColor)
+                  ? Center(child: Style().loading())
                   : Container(
                       child: SingleChildScrollView(
                         child: Column(
