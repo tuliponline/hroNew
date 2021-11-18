@@ -3,7 +3,9 @@ import 'package:hro/model/AppConfigModel.dart';
 import 'package:hro/model/UserListMudel.dart';
 import 'package:hro/model/UserOneModel.dart';
 import 'package:hro/model/allShopModel.dart';
+import 'package:hro/model/codeModel.dart';
 import 'package:hro/model/driverModel.dart';
+import 'package:hro/model/orderModel.dart';
 import 'package:hro/model/productsModel.dart';
 import 'package:hro/model/ratingModel.dart';
 import 'package:hro/model/shopModel.dart';
@@ -24,6 +26,7 @@ class AppDataModel {
   var dateSystemFormat = DateFormat("yyyy-MM-dd");
 
   String loginLevel = "1";
+  bool loginStatus = false;
 
   bool locationStatus = false;
 
@@ -40,6 +43,11 @@ class AppDataModel {
       riderLng;
   AppConfigModel appConfigModel;
   UserOneModel userOneModel;
+
+  //---caht
+
+  String userTypeSelect;
+  OrderDetail orderDetailSelect;
 
   List<UserListModel> alluserData;
   List<DriversListModel> allRiderData;
@@ -62,6 +70,9 @@ class AppDataModel {
       "https://us-central1-hro-authen.cloudfunctions.net/hello/notify";
   String qrGenServer = "https://qrgen.paystationth.com/";
 
+  String googleMapApiKey = "AIzaSyCS6ehnSORkFofyFtqKF0seG3scYNV8lm4";
+  String googleMapApiKeyPlaces = "AIzaSyCw82CcJWduFF5MXEOPOND8mgnxvGDUF-M";
+
   //location and costDelivery Setup
   LocationSetupModel locationSetupModel;
 
@@ -73,6 +84,7 @@ class AppDataModel {
   List<RatingListModel> riderRatingList;
 
   String productEditId;
+  String creditTicketId;
 
   //-----profile Data--------
   String profileEmail;
@@ -83,6 +95,9 @@ class AppDataModel {
   String profileProvider;
   String profileLocation;
   String profileStatus;
+
+  //ad----
+  int adAddType;
 
   String loginProvider;
   bool profilePhoneVerify = false;
@@ -163,4 +178,9 @@ class AppDataModel {
   set token(String token) {
     _token = token;
   }
+
+  //Code
+  String codeIdSelect;
+  String codeTypeSelect;
+  CodeOneModel codeOneModel;
 }

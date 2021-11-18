@@ -41,6 +41,8 @@ class ShopState extends State<ShopPage> {
   int _selectedIndex = 0;
   bool shopOpen = false;
   ShopModel shopModel;
+  OrderDetail _orderDetailSelect;
+  bool loading = false;
 
   _setData(AppDataModel appDataModel) async {
     userOneModel = appDataModel.userOneModel;
@@ -65,6 +67,7 @@ class ShopState extends State<ShopPage> {
     await _getOrders(context.read<AppDataModel>());
     await _getShopData(userOneModel.uid);
     setState(() {
+      loading = false;
       print('setstate');
     });
   }
@@ -226,7 +229,7 @@ class ShopState extends State<ShopPage> {
                       )
                     ],
                   ),
-            body: (shopModel == null)
+            body: (shopModel == null || loading == true)
                 ? Center(child: Style().loading())
                 : Container(
                     color: Colors.grey.shade200,
@@ -372,8 +375,10 @@ class ShopState extends State<ShopPage> {
                                 children: [
                                   Style().textSizeColor('order No.' + e.orderId,
                                       12, Style().textColor),
-                                  Style().textSizeColor(" (" + e.amount + "฿)",
-                                      12, Style().darkColor)
+                                  Style().textSizeColor(
+                                      " (" + e.amountOri + "฿)",
+                                      12,
+                                      Style().darkColor)
                                 ],
                               ),
                               subtitle: Style().textSizeColor(
@@ -397,6 +402,8 @@ class ShopState extends State<ShopPage> {
                         IconButton(
                             onPressed: () {
                               orderSelected = e.orderId;
+                              _orderDetailSelect =
+                                  orderDetailFromJson(jsonEncode(e));
                               for (int i = 0; i < showDetail.length; i++) {
                                 if (index != i) showDetail[i] = false;
                               }
@@ -501,8 +508,10 @@ class ShopState extends State<ShopPage> {
                                 children: [
                                   Style().textSizeColor('order No.' + e.orderId,
                                       12, Style().textColor),
-                                  Style().textSizeColor(" (" + e.amount + "฿)",
-                                      12, Style().darkColor)
+                                  Style().textSizeColor(
+                                      " (" + e.amountOri + "฿)",
+                                      12,
+                                      Style().darkColor)
                                 ],
                               ),
                               subtitle: Style().textSizeColor(
@@ -647,13 +656,14 @@ class ShopState extends State<ShopPage> {
                 Column(
                   children: [
                     Style().textSizeColor(
-                        (int.parse(e.pcs) * int.parse(e.price)).toString() +
+                        (int.parse(e.pcs) * int.parse(e.oriPrice)).toString() +
                             ' ฿',
                         14,
                         Style().textColor),
                     Row(
                       children: [
-                        Style().textSizeColor(e.price, 12, Style().darkColor),
+                        Style()
+                            .textSizeColor(e.oriPrice, 12, Style().darkColor),
                         Style().textSizeColor(
                             ' ฿/จำนวน x ' + e.pcs, 12, Style().darkColor)
                       ],
@@ -794,7 +804,10 @@ class ShopState extends State<ShopPage> {
   }
 
   _cancelOrder(AppDataModel appDataModel, String orderId) async {
-    db.collection('orders').doc(orderId).get().then((value) async {
+    setState(() {
+      loading = true;
+    });
+    await db.collection('orders').doc(orderId).get().then((value) async {
       OrderDetail orderDetail = orderDetailFromJson(jsonEncode(value.data()));
       if (orderDetail.status == '2') {
         var result = await dialogs.inputDialog(
@@ -848,6 +861,10 @@ class ShopState extends State<ShopPage> {
   }
 
   _conFirmOrder(AppDataModel appDataModel, String orderId) async {
+    setState(() {
+      loading = true;
+    });
+
     db.collection('orders').doc(orderId).get().then((value) async {
       OrderDetail orderDetail = orderDetailFromJson(jsonEncode(value.data()));
       if (orderDetail.status == '2') {
@@ -855,7 +872,31 @@ class ShopState extends State<ShopPage> {
             .collection('orders')
             .doc(orderId)
             .update({'status': '3'}).then((value) {
-          addLog(orderId, '3', 'shop', userOneModel.uid, '').then((value) {
+          addLog(orderId, '3', 'shop', userOneModel.uid, '')
+              .then((value) async {
+            await db
+                .collection("users")
+                .doc(_orderDetailSelect.customerId)
+                .get()
+                .then((value) async {
+              UserOneModel userOneModel =
+                  userOneModelFromJson(jsonEncode(value.data()));
+
+              await notifySend(userOneModel.token, "ร้านค้ากำลังเตรียมสินค้า",
+                  "ร้านค้ากำลังเตรียมสินค้าของคุณ");
+            });
+            await db
+                .collection("users")
+                .doc(_orderDetailSelect.driver)
+                .get()
+                .then((value) async {
+              UserOneModel userOneModel =
+                  userOneModelFromJson(jsonEncode(value.data()));
+
+              await notifySend(userOneModel.token, "ร้านค้ากำลังเตรียมสินค้า",
+                  "โปรดเดินทางไปรับสินค้าที่ร้านค้า");
+            });
+
             _setData(context.read<AppDataModel>());
           });
         });
@@ -873,7 +914,7 @@ class ShopState extends State<ShopPage> {
   buildAmount() {
     int amount = 0;
     orderProduct.forEach((e) {
-      amount += (int.parse(e.price) * int.parse(e.pcs));
+      amount += (int.parse(e.oriPrice) * int.parse(e.pcs));
     });
 
     return Container(

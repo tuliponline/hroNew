@@ -1,18 +1,23 @@
 import 'dart:convert';
 
+import 'package:badges/badges.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hro/model/AppDataModel.dart';
+import 'package:hro/model/CreditTicketListMadel.dart';
 import 'package:hro/model/UserListMudel.dart';
 import 'package:hro/model/UserOneModel.dart';
 import 'package:hro/model/allShopModel.dart';
 import 'package:hro/model/driverModel.dart';
 import 'package:hro/model/orderModel.dart';
 import 'package:hro/model/productsModel.dart';
+import 'package:hro/model/setupModel.dart';
 import 'package:hro/model/shopModel.dart';
+import 'package:hro/page/fireBaseFunctions.dart';
 import 'package:hro/utility/Dialogs.dart';
 import 'package:hro/utility/notifySend.dart';
 import 'package:hro/utility/snapshot2list.dart';
@@ -29,6 +34,7 @@ class AdminHomePage extends StatefulWidget {
 }
 
 class AdminHomeState extends State<AdminHomePage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   FirebaseFirestore db = FirebaseFirestore.instance;
 
   int riderOffline = 0,
@@ -46,6 +52,7 @@ class AdminHomeState extends State<AdminHomePage> {
   List<UserListModel> allUserData;
   List<AllShopModel> allShopData;
   List<ProductsModel> allProductData;
+  List<ProductsModel> productFilter;
   List<DriversListModel> allDriverData;
   List<OrderList> allOrderData;
 
@@ -56,8 +63,40 @@ class AdminHomeState extends State<AdminHomePage> {
 
   var _textControl = TextEditingController();
 
+  bool loading = false;
+
+  ScrollController scrollController = ScrollController();
+  int amountListView = 20;
+
+  ScrollController scrollControllerShop = ScrollController();
+  int amountListViewShop = 20;
+
+  ScrollController scrollControllerProduct = ScrollController();
+  int amountListViewProduct = 20;
+
+  ScrollController scrollControllerRider = ScrollController();
+  int amountListViewRider = 20;
+  String _productIdSelect;
+  TextEditingController _fullPrice = TextEditingController();
+  TextEditingController _searchSelect = TextEditingController();
+
+  AppSetupModel appSetupModel;
+
+  bool creditTransactionWaiting = false;
+
   _getAllUser(AppDataModel appDataModel) async {
     screenW = appDataModel.screenW;
+
+    creditTransactionWaiting = false;
+
+    await db.collection("addCreditTicket").get().then((value) {
+      var jsonData = setList2Json(value);
+      List<CreditTicketListModel> creditTicketListData =
+          creditTicketListModelFromJson(jsonData);
+      creditTicketListData.forEach((element) {
+        if (element.status == "3") creditTransactionWaiting = true;
+      });
+    });
     await db.collection("users").get().then((value) {
       var jsonData = setList2Json(value);
       appDataModel.alluserData = userListModelFromJson(jsonData);
@@ -79,6 +118,7 @@ class AdminHomeState extends State<AdminHomePage> {
       var jsonData = setList2Json(value);
       appDataModel.allProductData = productsModelFromJson(jsonData);
       allProductData = appDataModel.allProductData;
+      productFilter = allProductData;
     });
     await db.collection("drivers").get().then((value) {
       var jsonData = setList2Json(value);
@@ -114,30 +154,89 @@ class AdminHomeState extends State<AdminHomePage> {
     setState(() {});
   }
 
+  _getConfig() async {
+    var _dbAppConfig = await dbGetDataOne("getAppConfig", "setup", "app");
+    print(_dbAppConfig[1]);
+    appSetupModel = appSetupModelFromJson(_dbAppConfig[1]);
+    setState(() {});
+  }
+
+  _realTimeDb() {
+    db.collection("addCreditTicket").snapshots().listen((event) async {
+      creditTransactionWaiting = false;
+
+      await db.collection("addCreditTicket").get().then((value) {
+        var jsonData = setList2Json(value);
+        List<CreditTicketListModel> creditTicketListData =
+            creditTicketListModelFromJson(jsonData);
+        creditTicketListData.forEach((element) {
+          if (element.status == "3") creditTransactionWaiting = true;
+        });
+      });
+    });
+  }
+
   @override
   void initState() {
-    super.initState();
+    _getConfig();
     _getAllUser(context.read<AppDataModel>());
+    _realTimeDb();
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AppDataModel>(
         builder: (context, appDataModel, child) => Scaffold(
+              key: _scaffoldKey,
               appBar: AppBar(
                 iconTheme: IconThemeData(color: Style().darkColor),
                 backgroundColor: Colors.white,
                 bottomOpacity: 0.0,
                 elevation: 0.0,
                 title: Style().textDarkAppbar(headerText),
+                leading: IconButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: Icon(Icons.arrow_back_ios)),
                 actions: [
                   IconButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, "/asminSystem-page");
+                        Navigator.pushNamed(context, "/adminSendNotify-page");
                       },
-                      icon: Icon(Icons.settings))
+                      icon: Icon(
+                        Icons.sms,
+                        color: Style().darkColor,
+                      )),
+                  IconButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, "/transectionTicket-page");
+                    },
+                    icon: (creditTransactionWaiting == false)
+                        ? Icon(
+                            FontAwesomeIcons.exchangeAlt,
+                            size: 20,
+                          )
+                        : Badge(
+                            badgeColor: Colors.red,
+                            position: BadgePosition.topEnd(top: -5, end: -5),
+                            shape: BadgeShape.circle,
+                            borderRadius: BorderRadius.circular(100),
+                            child: Icon(
+                              FontAwesomeIcons.exchangeAlt,
+                              size: 20,
+                            ),
+                            badgeContent: null),
+                  ),
+                  IconButton(
+                      onPressed: () {
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                      icon: Icon(Icons.menu))
                 ],
               ),
+              endDrawer: _adminDrawer(),
               body: (allOrderData == null)
                   ? Center(child: Style().loading())
                   : Container(
@@ -156,43 +255,16 @@ class AdminHomeState extends State<AdminHomePage> {
                                       context.read<AppDataModel>()),
                                 ],
                               ))
-                          : SingleChildScrollView(
-                              child: (_selectedIndex == 1)
-                                  ? Column(
-                                      children: [
-                                        _searchBar(
-                                            context.read<AppDataModel>()),
-                                        buildCustomerList(
-                                            context.read<AppDataModel>())
-                                      ],
-                                    )
-                                  : (_selectedIndex == 2)
-                                      ? Column(
-                                          children: [
-                                            _searchBar(
-                                                context.read<AppDataModel>()),
-                                            buildShopList()
-                                          ],
-                                        )
-                                      : (_selectedIndex == 3)
-                                          ? Column(
-                                              children: [
-                                                _searchBar(context
-                                                    .read<AppDataModel>()),
-                                                buildProductList(context
-                                                    .read<AppDataModel>())
-                                              ],
-                                            )
-                                          : (_selectedIndex == 4)
-                                              ? Column(
-                                                  children: [
-                                                    _searchBar(context
-                                                        .read<AppDataModel>()),
-                                                    buildRiderList()
-                                                  ],
-                                                )
-                                              : Container(),
-                            )),
+                          : (_selectedIndex == 1)
+                              ? buildCustomerList(context.read<AppDataModel>())
+                              : (_selectedIndex == 2)
+                                  ? buildShopList()
+                                  : (_selectedIndex == 3)
+                                      ? buildProductList(
+                                          context.read<AppDataModel>())
+                                      : (_selectedIndex == 4)
+                                          ? buildRiderList()
+                                          : Container()),
               bottomNavigationBar: BottomNavigationBar(
                 type: BottomNavigationBarType.fixed,
                 items: const <BottomNavigationBarItem>[
@@ -970,7 +1042,7 @@ class AdminHomeState extends State<AdminHomePage> {
     );
   }
 
-  buildProductList(AppDataModel appDataModel) {
+  buildProductList1(AppDataModel appDataModel) {
     return SingleChildScrollView(
       child: Container(
         child: (allProductData == null ||
@@ -1343,6 +1415,435 @@ class AdminHomeState extends State<AdminHomePage> {
                 }).toList(),
               ),
       ),
+    );
+  }
+
+  buildProductList(AppDataModel appDataModel) {
+    return Container(
+      child: (productFilter == null ||
+              showDetail.length != productFilter.length ||
+              loading == true)
+          ? Center(child: Style().loading())
+          : Column(
+              children: [
+                _searchBare(context.read<AppDataModel>()),
+                Expanded(
+                  child: ListView.builder(
+                      controller: scrollControllerProduct,
+                      itemCount: amountListViewProduct,
+                      itemBuilder: (BuildContext buildContext, int index) {
+                        var e = productFilter[index];
+                        String shopName = "";
+
+                        allShopData.forEach((element) {
+                          ShopModel shopModel =
+                              shopModelFromJson(jsonEncode(element));
+                          if (shopModel.shopUid == e.shopUid) {
+                            shopName = shopModel.shopName;
+                          }
+                        });
+
+                        return Container(
+                          color: Colors.white,
+                          margin: EdgeInsets.only(top: 3),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  (showDetail[index] == true)
+                                      ? Container()
+                                      : Container(
+                                          margin: EdgeInsets.only(
+                                            left: 10,
+                                          ),
+                                          height: 40,
+                                          width: 40,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(5),
+                                            color: Colors.white,
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(5.0),
+                                            child: CachedNetworkImage(
+                                              key: UniqueKey(),
+                                              imageUrl: e.productPhotoUrl,
+                                              fit: BoxFit.cover,
+                                              placeholder: (context, url) =>
+                                                  Container(
+                                                color: Colors.black12,
+                                              ),
+                                              errorWidget:
+                                                  (context, url, error) =>
+                                                      Container(
+                                                color: Colors.black12,
+                                                child: (Icon(
+                                                  Icons.error,
+                                                  color: Colors.red,
+                                                )),
+                                              ),
+                                            ),
+
+                                            // FadeInImage.assetNetwork(
+                                            //   fit: BoxFit.fitHeight,
+                                            //   placeholder:
+                                            //       'assets/images/loading.gif',
+                                            //   image: ranProductModel[index]
+                                            //       .productPhotoUrl,
+                                            // ),
+                                          )),
+                                  Container(
+                                    margin: EdgeInsets.only(left: 10),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        (showDetail[index] == false)
+                                            ? Container()
+                                            : Container(
+                                                margin: EdgeInsets.only(
+                                                  left: 10,
+                                                ),
+                                                height: 100,
+                                                width: 100,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  color: Colors.white,
+                                                ),
+                                                child: CachedNetworkImage(
+                                                  key: UniqueKey(),
+                                                  imageUrl: e.productPhotoUrl,
+                                                  fit: BoxFit.cover,
+                                                  placeholder: (context, url) =>
+                                                      Container(
+                                                    color: Colors.black12,
+                                                  ),
+                                                  errorWidget:
+                                                      (context, url, error) =>
+                                                          Container(
+                                                    color: Colors.black12,
+                                                    child: (Icon(
+                                                      Icons.error,
+                                                      color: Colors.red,
+                                                    )),
+                                                  ),
+                                                ),
+                                              ),
+                                        Row(
+                                          children: [
+                                            (e.productName == null)
+                                                ? Container()
+                                                : Container(
+                                                    width: screenW * 0.5,
+                                                    child: Style()
+                                                        .textFlexibleBackSize(
+                                                            e.productName,
+                                                            2,
+                                                            14),
+                                                  ),
+                                            (e.productStatus == "3")
+                                                ? Container(
+                                                    margin: EdgeInsets.only(
+                                                        left: 5),
+                                                    child: IconButton(
+                                                        onPressed: () async {
+                                                          var result = await Dialogs()
+                                                              .confirm(
+                                                                  context,
+                                                                  "ยืนยันสินค้า",
+                                                                  "ยืนยันสถานะสินค้า");
+
+                                                          if (result != null &&
+                                                              result == true) {
+                                                            await db
+                                                                .collection(
+                                                                    "products")
+                                                                .doc(
+                                                                    e.productId)
+                                                                .update({
+                                                              "product_status":
+                                                                  "1"
+                                                            }).then((value) {});
+                                                            await db
+                                                                .collection(
+                                                                    "products")
+                                                                .get()
+                                                                .then((value) {
+                                                              var jsonData =
+                                                                  setList2Json(
+                                                                      value);
+                                                              appDataModel
+                                                                      .allProductData =
+                                                                  productsModelFromJson(
+                                                                      jsonData);
+                                                              allProductData =
+                                                                  appDataModel
+                                                                      .allProductData;
+                                                              productFilter =
+                                                                  allProductData;
+                                                            });
+
+                                                            if (isChecked) {
+                                                              productFilter = allProductData
+                                                                  .where((element) => (element
+                                                                          .productStatus)
+                                                                      .contains(
+                                                                          "3"))
+                                                                  .toList();
+                                                            } else {
+                                                              productFilter =
+                                                                  allProductData;
+                                                            }
+
+                                                            setState(() {});
+                                                          }
+                                                        },
+                                                        icon: Icon(
+                                                          Icons.lock_clock,
+                                                          color: Colors
+                                                              .deepOrangeAccent,
+                                                        )),
+                                                  )
+                                                : (e.productStatus == "2")
+                                                    ? Container(
+                                                        margin: EdgeInsets.only(
+                                                            left: 5),
+                                                        child: Icon(
+                                                          Icons.circle,
+                                                          color: Colors.orange,
+                                                          size: 10,
+                                                        ),
+                                                      )
+                                                    : (e.productStatus == "1")
+                                                        ? Container(
+                                                            margin:
+                                                                EdgeInsets.only(
+                                                                    left: 5),
+                                                            child: Icon(
+                                                                Icons.circle,
+                                                                size: 10,
+                                                                color: Colors
+                                                                    .green))
+                                                        : Container(
+                                                            margin:
+                                                                EdgeInsets.only(
+                                                                    left: 5),
+                                                            child: Icon(
+                                                              Icons.close,
+                                                              color: Colors.red,
+                                                            ))
+                                          ],
+                                        ),
+                                        (showDetail[index] == false)
+                                            ? Container()
+                                            : Container(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Container(
+                                                      width: screenW * 0.6,
+                                                      child: Style()
+                                                          .textFlexibleBackSize(
+                                                              e.productDetail,
+                                                              2,
+                                                              14),
+                                                    ),
+                                                    (e.productPrice == null)
+                                                        ? Style().textBlackSize(
+                                                            "ราคา : ", 14)
+                                                        : Style().textBlackSize(
+                                                            "ราคาหน้าร้าน : " +
+                                                                e.productOriPrice,
+                                                            14),
+                                                    (e.productPrice == null)
+                                                        ? Style().textBlackSize(
+                                                            "ราคา : ", 14)
+                                                        : Row(
+                                                            children: [
+                                                              Style().textBlackSize(
+                                                                  "ราคาแอพ : " +
+                                                                      e.productPrice +
+                                                                      " ",
+                                                                  14),
+                                                              InkWell(
+                                                                onTap:
+                                                                    () async {
+                                                                  _productIdSelect =
+                                                                      e.productId;
+                                                                  _fullPrice
+                                                                          .text =
+                                                                      e.productPrice;
+
+                                                                  await _displayTextInputDialog(
+                                                                      context);
+                                                                  await _getAllUser(
+                                                                      context.read<
+                                                                          AppDataModel>());
+                                                                  if (isChecked ==
+                                                                      true)
+                                                                    _checkWork();
+                                                                },
+                                                                child: Icon(
+                                                                  Icons.edit,
+                                                                  size: 20,
+                                                                  color: Colors
+                                                                      .red,
+                                                                ),
+                                                              )
+                                                            ],
+                                                          ),
+                                                    (e.productTime == null)
+                                                        ? Style().textBlackSize(
+                                                            "เวลา : ", 14)
+                                                        : Style().textBlackSize(
+                                                            "เวลา : " +
+                                                                e.productTime,
+                                                            14),
+                                                    Style().textBlackSize(
+                                                        shopName, 14),
+                                                    (e.productId == null)
+                                                        ? Style().textBlackSize(
+                                                            "uid : ", 14)
+                                                        : Style().textBlackSize(
+                                                            e.productId, 10)
+                                                  ],
+                                                ),
+                                              ),
+                                        (showDetail[index] == false)
+                                            ? (Container())
+                                            : Container(
+                                                width: screenW * 0.8,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  children: [
+                                                    Container(
+                                                      margin: EdgeInsets.only(
+                                                          right: 5),
+                                                      padding:
+                                                          EdgeInsets.all(1),
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .end,
+                                                        children: [
+                                                          ElevatedButton(
+                                                            onPressed:
+                                                                () async {
+                                                              var result =
+                                                                  await Dialogs()
+                                                                      .confirm(
+                                                                context,
+                                                                "ลบสินค้า",
+                                                                "ยืนยัน ลบสินค้า",
+                                                              );
+                                                              if (result !=
+                                                                      null &&
+                                                                  result ==
+                                                                      true) {
+                                                                _deleteProduct(
+                                                                  2,
+                                                                  e.productId,
+                                                                  e.productPhotoUrl,
+                                                                );
+                                                              }
+                                                            },
+                                                            child: Style()
+                                                                .textSizeColor(
+                                                                    'ลบถาวร',
+                                                                    14,
+                                                                    Colors
+                                                                        .white),
+                                                            style: ElevatedButton.styleFrom(
+                                                                primary:
+                                                                    Colors.red,
+                                                                shape: RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            5))),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      margin: EdgeInsets.only(
+                                                          right: 5),
+                                                      padding:
+                                                          EdgeInsets.all(1),
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .end,
+                                                        children: [
+                                                          ElevatedButton(
+                                                            onPressed:
+                                                                () async {
+                                                              var result =
+                                                                  await Dialogs()
+                                                                      .confirm(
+                                                                context,
+                                                                "ย้านสินค้า",
+                                                                "ยืนยัน ย้านสินค้าไปถังขยะ",
+                                                              );
+                                                              if (result !=
+                                                                      null &&
+                                                                  result ==
+                                                                      true) {
+                                                                _deleteProduct(
+                                                                  1,
+                                                                  e.productId,
+                                                                  e.productPhotoUrl,
+                                                                );
+                                                              }
+                                                            },
+                                                            child: Style()
+                                                                .textSizeColor(
+                                                                    'ย้ายไปถังขยะ',
+                                                                    14,
+                                                                    Colors
+                                                                        .white),
+                                                            style: ElevatedButton.styleFrom(
+                                                                primary: Colors
+                                                                    .orange,
+                                                                shape: RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            5))),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
+                                              )
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                              IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      print("index = " + index.toString());
+                                      (showDetail[index] == true)
+                                          ? showDetail[index] = false
+                                          : showDetail[index] = true;
+                                    });
+                                  },
+                                  icon: (showDetail[index] == false)
+                                      ? Icon(Icons.arrow_drop_down)
+                                      : Icon(Icons.arrow_drop_up))
+                            ],
+                          ),
+                        );
+                      }),
+                )
+              ],
+            ),
     );
   }
 
@@ -1736,40 +2237,6 @@ class AdminHomeState extends State<AdminHomePage> {
     });
   }
 
-  _searchBar(AppDataModel appDataModel) {
-    return Row(
-      children: [
-        Row(
-          children: [
-            Checkbox(
-              checkColor: Colors.white,
-              value: isChecked,
-              onChanged: (value) async {
-                if (_selectedIndex == 3) {
-                  _waitForReviewProduct(context.read<AppDataModel>(), value);
-                }
-                if (_selectedIndex == 4) {
-                  _waitForReviewRider(context.read<AppDataModel>(), value);
-                }
-                if (_selectedIndex == 2) {
-                  _waitForReviewShop(context.read<AppDataModel>(), value);
-                }
-                if (_selectedIndex == 1) {
-                  _waitForReviewUser(context.read<AppDataModel>(), value);
-                }
-
-                setState(() {
-                  isChecked = value;
-                });
-              },
-            ),
-            Style().textBlackSize("รอตรวจสอบ", 12)
-          ],
-        ),
-      ],
-    );
-  }
-
   _searchProduct(AppDataModel appDataModel) {
     print(_textControl.text);
     if (_textControl != null) {
@@ -1897,5 +2364,415 @@ class AdminHomeState extends State<AdminHomePage> {
         showDetail.add(false);
       });
     }
+  }
+
+  _searchBare(AppDataModel appDataModel) {
+    int textfieldw = 40;
+    return Container(
+      child: Row(
+        children: [
+          (_selectedIndex == 1)
+              ? Container()
+              : Row(
+                  children: [
+                    Checkbox(
+                      checkColor: Colors.white,
+                      value: isChecked,
+                      onChanged: (bool value) {
+                        isChecked = value;
+                        _checkWork();
+                      },
+                    ),
+                    Style().textSizeColor("รอยืนยัน", 14, Colors.black)
+                  ],
+                ),
+          Expanded(
+            child: Container(
+              alignment: Alignment.center,
+              height: double.parse(textfieldw.toString()),
+              margin: EdgeInsets.only(left: 10, right: 10, top: 3),
+              child: TextField(
+                style: TextStyle(
+                    fontFamily: "prompt", fontSize: 14, color: Colors.black),
+                decoration: InputDecoration(
+                    contentPadding: EdgeInsets.only(
+                      left: 5,
+                      bottom: textfieldw / 4, // HERE THE IMPORTANT PART
+                    ),
+                    hintText: 'ค้นหา',
+                    hintStyle: TextStyle(
+                        fontFamily: "prompt",
+                        fontSize: 14,
+                        color: Colors.black),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(8.0),
+                        ),
+                        borderSide: BorderSide.none),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(8.0),
+                        ),
+                        borderSide: BorderSide.none),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(8.0),
+                        ),
+                        borderSide: BorderSide.none),
+                    suffixIcon: InkWell(
+                      onTap: () {
+                        print("text Icon select");
+                      },
+                      child: Icon(
+                        FontAwesomeIcons.search,
+                        color: Colors.red,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white),
+                controller: _searchSelect,
+                onChanged: (value) {
+                  _searchWork(context.read<AppDataModel>());
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  _checkWork() {
+    if (_selectedIndex == 2) {
+      // if (isChecked) {
+      //   shopFilter = allShopData
+      //       .where((element) => (element.shopStatus).contains("3"))
+      //       .toList();
+      //   if (this.mounted) {
+      //     setState(() {
+      //       (shopFilter.length > 20)
+      //           ? amountListViewShop = 20
+      //           : amountListViewShop = shopFilter.length;
+      //     });
+      //   }
+      // } else {
+      //   shopFilter = allShopData;
+      //   setState(() {
+      //     (shopFilter.length > 20)
+      //         ? amountListViewShop = 20
+      //         : amountListViewShop = shopFilter.length;
+      //   });
+      // }
+    } else if (_selectedIndex == 3) {
+      if (isChecked) {
+        productFilter = allProductData
+            .where((element) => (element.productStatus).contains("3"))
+            .toList();
+
+        if (showDetail.length != productFilter.length) {
+          showDetail = [];
+          productFilter.forEach((element) {
+            showDetail.add(false);
+          });
+        }
+
+        setState(() {
+          (productFilter.length > 20)
+              ? amountListViewProduct = 20
+              : amountListViewProduct = productFilter.length;
+        });
+      } else {
+        productFilter = allProductData;
+        showDetail = [];
+        productFilter.forEach((element) {
+          showDetail.add(false);
+        });
+        setState(() {
+          (productFilter.length > 20)
+              ? amountListViewProduct = 20
+              : amountListViewProduct = productFilter.length;
+        });
+      }
+    } else if (_selectedIndex == 4) {
+      // if (isChecked) {
+      //   driverFliter = allDriverData
+      //       .where((element) => (element.driverStatus).contains("3"))
+      //       .toList();
+
+      //   showDetail = [];
+      //   driverFliter.forEach((element) {
+      //     showDetail.add(false);
+      //   });
+      //   setState(() {
+      //     (driverFliter.length > 20)
+      //         ? amountListViewRider = 20
+      //         : amountListViewRider = driverFliter.length;
+      //   });
+      // } else {
+      //   driverFliter = allDriverData;
+      //   setState(() {
+      //     (driverFliter.length > 20)
+      //         ? amountListViewRider = 20
+      //         : amountListViewRider = driverFliter.length;
+      //   });
+      // }
+    }
+  }
+
+  _searchWork(AppDataModel appDataModel) {
+    if (_selectedIndex == 1) {
+      // userFilter = allUserData
+      //     .where((element) =>
+      //         (element.name).contains(_searchSelect.text) ||
+      //         (element.email).contains(_searchSelect.text) ||
+      //         (element.uid).contains(_searchSelect.text))
+      //     .toList();
+      // setState(() {});
+    } else if (_selectedIndex == 2) {
+      // shopFilter = allShopData
+      //     .where((element) =>
+      //         (element.shopName).contains(_searchSelect.text) ||
+      //         (element.shopFullAddress).contains(_searchSelect.text))
+      //     .toList();
+      // setState(() {
+      //   (shopFilter.length > 20)
+      //       ? amountListViewShop = 20
+      //       : amountListViewShop = shopFilter.length;
+      // });
+    } else if (_selectedIndex == 3) {
+      productFilter = allProductData
+          .where(
+              (element) => (element.productName).contains(_searchSelect.text))
+          .toList();
+      showDetail = [];
+      productFilter.forEach((element) {
+        showDetail.add(false);
+      });
+
+      setState(() {
+        (productFilter.length > 20)
+            ? amountListViewProduct = 20
+            : amountListViewProduct = productFilter.length;
+      });
+    } else if (_selectedIndex == 4) {
+      // driverFliter = allDriverData
+      //     .where((element) =>
+      //         (element.driverName).contains(_searchSelect.text) ||
+      //         (element.driverId).contains(_searchSelect.text))
+      //     .toList();
+
+      // showDetail = [];
+      // driverFliter.forEach((element) {
+      //   showDetail.add(false);
+      // });
+
+      // setState(() {
+      //   (driverFliter.length > 20)
+      //       ? amountListViewRider = 20
+      //       : amountListViewRider = driverFliter.length;
+      // });
+    }
+  }
+
+  Future<void> _displayTextInputDialog(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Style().textBlackSize("ราคาบนแอพ", 16),
+            content: TextField(
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                setState(() {});
+              },
+              controller: _fullPrice,
+              decoration: InputDecoration(hintText: "ระบุราคา"),
+            ),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child:
+                      Style().textSizeColor("ยกเลิก", 14, Style().darkColor)),
+              TextButton(
+                  onPressed: () async {
+                    await db
+                        .collection("products")
+                        .doc(_productIdSelect)
+                        .update({"product_price": _fullPrice.text});
+                    Navigator.pop(context, true);
+                  },
+                  child: Style().textSizeColor("ตกลง", 14, Style().darkColor)),
+            ],
+          );
+        });
+  }
+
+  _adminDrawer() {
+    return Drawer(
+      // Add a ListView to the drawer. This ensures the user can scroll
+      // through the options in the drawer if there isn't enough vertical
+      // space to fit everything.
+      child: SafeArea(
+        child: ListView(
+          // Important: Remove any padding from the ListView.
+          padding: EdgeInsets.zero,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Row(
+                children: [
+                  Icon(FontAwesomeIcons.tags),
+                  Expanded(
+                    child: ListTile(
+                      title: Style()
+                          .textSizeColor("Code ส่วนลด", 14, Colors.black),
+                      onTap: () {
+                        Navigator.pushNamed(context, "/adminDoce-page",
+                            arguments: "allapp");
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Row(
+                children: [
+                  Icon(FontAwesomeIcons.ad),
+                  Expanded(
+                    child: ListTile(
+                      title:
+                          Style().textSizeColor("แบนเนอร์", 14, Colors.black),
+                      onTap: () {
+                        Navigator.pushNamed(context, "/adminAdManage-page");
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Row(
+                children: [
+                  Icon(FontAwesomeIcons.moneyBill),
+                  Expanded(
+                    child: ListTile(
+                      title: Style()
+                          .textSizeColor("ตั้งค่าบริการ", 14, Colors.black),
+                      onTap: () {
+                        Navigator.pushNamed(context, "/serviceSetting-page");
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Row(
+                children: [
+                  Icon(FontAwesomeIcons.university),
+                  Expanded(
+                    child: ListTile(
+                      title: Style()
+                          .textSizeColor("บัญชีธนาคาร", 14, Colors.black),
+                      onTap: () {
+                        Navigator.pushNamed(context, "/adminBankAccount-page");
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Row(
+                children: [
+                  Icon(FontAwesomeIcons.phone),
+                  Expanded(
+                    child: ListTile(
+                      title: Style()
+                          .textSizeColor("ข้อมูลติดต่อ", 14, Colors.black),
+                      onTap: () {
+                        Navigator.pushNamed(context, "/adminContactData-page");
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Row(
+                children: [
+                  Icon(FontAwesomeIcons.database),
+                  Expanded(
+                    child: ListTile(
+                      title:
+                          Style().textSizeColor("จัดการDB", 14, Colors.black),
+                      onTap: () {
+                        Navigator.pushNamed(context, "/adminSystem-page");
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8, right: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Icon(
+                    FontAwesomeIcons.powerOff,
+                    color: Colors.red,
+                  ),
+                  Expanded(
+                    child: ListTile(
+                      title: Row(
+                        children: [
+                          Style().textSizeColor("สถานะแอพ", 14, Colors.black),
+                        ],
+                      ),
+                      onTap: () {},
+                    ),
+                  ),
+                  (appSetupModel == null)
+                      ? Container()
+                      : Switch(
+                          activeColor: Style().darkColor,
+                          value: appSetupModel.status,
+                          onChanged: (value) async {
+                            String text = "";
+
+                            if (value == true) {
+                              text = "เปิดใช้งานแอพ";
+                            } else {
+                              text = "ปิดใช้งานแอพชั่วคราว";
+                            }
+
+                            var _result = await Dialogs()
+                                .confirm(context, text, 'ยืนยัน $text');
+                            if (_result == true) {
+                              await db
+                                  .collection('setup')
+                                  .doc("app")
+                                  .update({"status": value});
+                              setState(() {
+                                appSetupModel.status = value;
+                              });
+                            }
+                          })
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

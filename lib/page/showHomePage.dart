@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:badges/badges.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:double_back_to_close_app/double_back_to_close_app.dart';
@@ -8,15 +11,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hro/model/AppDataModel.dart';
 import 'package:hro/model/UserOneModel.dart';
+import 'package:hro/model/locationSetupModel.dart';
 import 'package:hro/model/orderModel.dart';
 import 'package:hro/page/orderList.dart';
 import 'package:hro/page/riderPage.dart';
 import 'package:hro/page/shop.dart';
 import 'package:hro/page/userPage.dart';
+import 'package:hro/utility/Dialogs.dart';
 import 'package:hro/utility/checkHaveShopAndRider.dart';
+import 'package:hro/utility/checkVersion.dart';
 import 'package:hro/utility/snapshot2list.dart';
 import 'package:hro/utility/style.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'homePage.dart';
 
 class ShowHomePage extends StatefulWidget {
@@ -57,6 +64,11 @@ class ShowHomeState extends State<ShowHomePage> {
       }
     }).catchError((onerror) {
       appDataModel.loginLevel = "1";
+    });
+
+    await db.collection("appstatus").doc("locationSetup").get().then((value) {
+      appDataModel.locationSetupModel =
+          locationSetupModelFromJson(jsonEncode(value.data()));
     });
   }
 
@@ -144,7 +156,9 @@ class ShowHomeState extends State<ShowHomePage> {
       _children = [HomePage(), OrderListPage(), RiderPage(), UserPage()];
       menuSelect = "menu4";
     }
-    setState(() {});
+    if (this.mounted) {
+      setState(() {});
+    }
   }
 
   _realTimeDB(AppDataModel appDataModel) async {
@@ -153,9 +167,67 @@ class ShowHomeState extends State<ShowHomePage> {
     });
   }
 
+  _checkUpdate(AppDataModel appDataModel) async {
+    var appVersion = await checkAppVersion();
+    var appVersionNow = await checkAppVersionOnServer();
+    var linkapp = "";
+
+    if (appDataModel.os == "ios") {
+      linkapp = await checkIosLink();
+    } else {
+      linkapp = await checkAndroidLink();
+    }
+
+    List<String> _appVersion = appVersion.split(".");
+    List<String> _serverVersion = appVersionNow.split(".");
+    print(appVersion);
+    print(appVersionNow);
+    print(_appVersion[1]);
+
+    var appVresionStr = _appVersion[0] + _appVersion[1] + _appVersion[2];
+    var serverresionStr =
+        _serverVersion[0] + _serverVersion[1] + _serverVersion[2];
+
+    int appVresionInt = int.parse(appVresionStr);
+    int serverresionInt = int.parse(serverresionStr);
+
+    bool _updateVesion = true;
+
+    if (appVresionInt < serverresionInt) {
+      _updateVesion = true;
+    } else {
+      _updateVesion = true;
+    }
+    if ((int.parse(_appVersion[0]) > int.parse(_serverVersion[0]))) {
+      _updateVesion = false;
+    } else {
+      if (int.parse(_appVersion[1]) > int.parse(_serverVersion[1])) {
+        _updateVesion = false;
+      } else {
+        if (int.parse(_appVersion[2]) >= int.parse(_serverVersion[2]))
+          _updateVesion = false;
+      }
+    }
+
+    if (_updateVesion == true) {
+      var _result = await Dialogs()
+          .confirm(context, "อัพเดท Version", "โปรดอัพเดทเวอร์ชั่นเพื่อใช้งาน");
+      if (_result != null && _result == true) {
+        await _launchURL(linkapp);
+        exit(0);
+      } else {
+        exit(0);
+      }
+    }
+  }
+
+  _launchURL(String _url) async => await canLaunch(_url)
+      ? await launch(_url)
+      : throw 'Could not launch $_url';
   @override
   void initState() {
     super.initState();
+    _checkUpdate(context.read<AppDataModel>());
     _realTimeDB(context.read<AppDataModel>());
     _setUserOneModel(context.read<AppDataModel>());
     _checkHaveShop();
@@ -276,17 +348,15 @@ class ShowHomeState extends State<ShowHomePage> {
                 ),
               ),
             ),
-            bottomNavigationBar: (appDataModel.locationStatus == false)
-                ? null
-                : _children.length > 0
-                    ? (menuSelect == "menu1")
-                        ? menu1()
-                        : (menuSelect == "menu2")
-                            ? menu2()
-                            : (menuSelect == "menu3")
-                                ? menu3()
-                                : menu4()
-                    : null));
+            bottomNavigationBar: _children.length > 0
+                ? (menuSelect == "menu1")
+                    ? menu1()
+                    : (menuSelect == "menu2")
+                        ? menu2()
+                        : (menuSelect == "menu3")
+                            ? menu3()
+                            : menu4()
+                : null));
   }
 
   menu1() {

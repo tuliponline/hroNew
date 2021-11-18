@@ -217,7 +217,7 @@ class MenuState extends State<MenuPage> {
                                               Style().textBlackSize(
                                                   'ราคา : ' +
                                                       _productsData[i]
-                                                          .productPrice +
+                                                          .productOriPrice +
                                                       " ฿",
                                                   14),
                                               Style().textBlackSize(

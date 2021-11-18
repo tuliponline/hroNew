@@ -1,5 +1,5 @@
 Future<String> getStatusString(String status) async {
-  String string;
+  String string = "";
   switch (status) {
     case '0':
       {

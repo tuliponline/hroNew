@@ -104,17 +104,19 @@ class EditShopState extends State<EditShopPage> {
       }
 
       locationSetupModel = appDataModel.locationSetupModel;
-      Position position = await checkLocationPosition();
-      lat = position.latitude;
-      lng = position.longitude;
+      List<String> _location = shopLocation.split(",");
+
+      lat = double.parse(_location[0]);
+      lng = double.parse(_location[1]);
 
       addressName = await getAddressName(lat, lng);
+
       shopLocation = '$lat,$lng';
       print('address = $addressName');
 
       setState(() {
-        lat = position.latitude;
-        lng = position.longitude;
+        lat = double.parse(_location[0]);
+        lng = double.parse(_location[1]);
         print('location = $lat,$lng');
       });
     });
@@ -517,52 +519,74 @@ class EditShopState extends State<EditShopPage> {
                   color: Colors.grey,
                   height: 0,
                 )),
-            Container(
-              margin: EdgeInsets.only(top: 10, bottom: 5),
-              child:
-                  Style().textSizeColor('ตำแหน่งร้าน', 14, Style().textColor),
-            ),
-            (addressName == null)
-                ? Container()
-                : Container(
-                    margin: EdgeInsets.only(left: 20, right: 20, bottom: 5),
-                    child: Style()
-                        .textSizeColor(addressName, 12, Style().textColor),
-                  ),
             (lat == null || lng == null)
                 ? Center(
                     child: Style().circularProgressIndicator(Style().darkColor),
                   )
-                : showMap(),
+                : Container(
+                    margin: EdgeInsets.only(left: 0, top: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Style().textBlackSize("ตำแหน่งร้านค้า", 14),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              color: Style().darkColor,
+                              size: 14,
+                            ),
+                            (addressName == null)
+                                ? Style()
+                                    .textBlackSize("ระบุตำแหน่งร้านค้า", 14)
+                                : Container(
+                                    width: appDataModel.screenW * 0.7,
+                                    child:
+                                        Style().textBlackSize(addressName, 12)),
+                            InkWell(
+                              onTap: () async {
+                                appDataModel.userLat = lat;
+                                appDataModel.userLng = lng;
+
+                                var result = await Navigator.pushNamed(
+                                    context, "/googleMap-page");
+
+                                if (result != null) {
+                                  List locationResuleNew = result;
+
+                                  lat = locationResuleNew[0];
+                                  lng = locationResuleNew[1];
+
+                                  addressName = await getAddressName(lat, lng);
+                                }
+                                setState(() {});
+
+                                // appDataModel.userLat = lat;
+                                // appDataModel.userLng = lng;
+
+                                // var result = await Navigator.pushNamed(
+                                //     context, "/googleMap-page");
+                                // if (result != null) {
+                                //   List latlngNew = result;
+                                //   lat = latlngNew[0];
+                                //   lng = latlngNew[1];
+
+                                //   addressName = await getAddressName(lat, lng);
+
+                                //   setState(() {});
+                                // }
+                              },
+                              child: Icon(
+                                Icons.keyboard_arrow_down_sharp,
+                                color: Style().darkColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
           ],
-        ));
-  }
-
-  Set<Marker> youMarker() {
-    return <Marker>[
-      Marker(
-          markerId: MarkerId('youMarker'),
-          position: LatLng(lat, lng),
-          infoWindow: InfoWindow(title: 'ตำแหน่งร้าน', snippet: addressName))
-    ].toSet();
-  }
-
-  Container showMap() {
-    LatLng firstLocation = LatLng(lat, lng);
-    CameraPosition cameraPosition = CameraPosition(
-      target: firstLocation,
-      zoom: 16.0,
-    );
-
-    return Container(
-        margin: EdgeInsets.only(left: 20, right: 20, bottom: 10),
-        height: 200,
-        child: GoogleMap(
-          // myLocationEnabled: true,
-          initialCameraPosition: cameraPosition,
-          mapType: MapType.normal,
-          onMapCreated: (controller) {},
-          markers: youMarker(),
         ));
   }
 

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:hro/model/AppDataModel.dart';
@@ -18,7 +19,6 @@ import 'package:hro/utility/getStatusString.dart';
 import 'package:hro/utility/style.dart';
 
 import 'package:provider/provider.dart';
-import 'package:toast/toast.dart';
 
 class OrderTrackPage extends StatefulWidget {
   @override
@@ -317,14 +317,25 @@ class OrderTrackState extends State<OrderTrackPage> {
                                                                       });
                                                                     }
                                                                   } else {
-                                                                    Toast.show(
-                                                                        "ทำรายการไม่ได้",
-                                                                        context,
-                                                                        duration:
+                                                                    Fluttertoast.showToast(
+                                                                        msg:
+                                                                            "ทำรายการไม่ได้",
+                                                                        toastLength:
                                                                             Toast
                                                                                 .LENGTH_SHORT,
                                                                         gravity:
-                                                                            Toast.CENTER);
+                                                                            ToastGravity
+                                                                                .CENTER,
+                                                                        timeInSecForIosWeb:
+                                                                            1,
+                                                                        backgroundColor:
+                                                                            Colors
+                                                                                .red,
+                                                                        textColor:
+                                                                            Colors
+                                                                                .white,
+                                                                        fontSize:
+                                                                            16.0);
                                                                   }
                                                                 } else {
                                                                   print("text+" +
@@ -385,6 +396,39 @@ class OrderTrackState extends State<OrderTrackPage> {
                                                         14,
                                                         Style().darkColor),
                                                   ],
+                                                ),
+                                                InkWell(
+                                                  onTap: () {
+                                                    appDataModel
+                                                            .orderDetailSelect =
+                                                        orderDetailFromJson(
+                                                            jsonEncode(
+                                                                orderDetail));
+                                                    appDataModel
+                                                            .userTypeSelect =
+                                                        "user";
+                                                    appDataModel
+                                                            .orderIdSelected =
+                                                        orderDetail.orderId;
+                                                    Navigator.pushNamed(
+                                                        context, "/chat-page");
+                                                  },
+                                                  child: Container(
+                                                    margin: EdgeInsets.only(
+                                                        left: 0),
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                          FontAwesomeIcons
+                                                              .facebookMessenger,
+                                                          color:
+                                                              Style().darkColor,
+                                                        ),
+                                                        Style().textBlackSize(
+                                                            " แชตกับRider", 16),
+                                                      ],
+                                                    ),
+                                                  ),
                                                 ),
                                               ],
                                             ),

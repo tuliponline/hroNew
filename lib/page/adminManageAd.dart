@@ -18,21 +18,16 @@ class AdminAdManagePage extends StatefulWidget {
 }
 
 class AdminAdManageState extends State<AdminAdManagePage> {
-  int _selectedIndex = 0;
   FirebaseFirestore db = FirebaseFirestore.instance;
   List<AdListModel> appPromote;
-  List<AdListModel> shopPromote;
+
   _setData(AppDataModel appDataModel) async {
-    await db.collection("promote").get().then((value) {
+    await db.collection("adsApp").get().then((value) {
       var jsonData = setList2Json(value);
       print("promoteData = " + jsonData);
       appPromote = promoteListModelFromJson(jsonData);
     });
-    await db.collection("shopPromote").get().then((value) {
-      var jsonData = setList2Json(value);
-      print("promoteData = " + jsonData);
-      shopPromote = promoteListModelFromJson(jsonData);
-    });
+
     setState(() {});
   }
 
@@ -47,7 +42,7 @@ class AdminAdManageState extends State<AdminAdManagePage> {
     return Consumer<AppDataModel>(
         builder: (context, appDataModel, child) => Scaffold(
               appBar: AppBar(
-                title: Style().textSizeColor("จัดการAd", 14, Colors.black),
+                title: Style().textSizeColor("แบนเนอร์", 14, Colors.black),
                 iconTheme: IconThemeData(color: Style().darkColor),
                 backgroundColor: Colors.white,
                 bottomOpacity: 0.0,
@@ -55,9 +50,8 @@ class AdminAdManageState extends State<AdminAdManagePage> {
                 actions: [
                   IconButton(
                       onPressed: () async {
-                 
                         var result = await Navigator.pushNamed(
-                            context, "/adminAddAs-page");
+                            context, "/adminAdAdd-page");
                         print("resule22 = " + result.toString());
                         if (result != null) {
                           _setData(context.read<AppDataModel>());
@@ -66,52 +60,21 @@ class AdminAdManageState extends State<AdminAdManagePage> {
                       icon: Icon(FontAwesomeIcons.plusCircle))
                 ],
               ),
-              body: (shopPromote == null)
+              body: (appPromote == null)
                   ? Center(child: Style().loading())
                   : Container(
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            (_selectedIndex == 0)
-                                ? _buildAppPromote(context.read<AppDataModel>())
-                                : _buildShopPromote(
-                                    context.read<AppDataModel>()),
+                            _buildAppPromote(context.read<AppDataModel>())
                           ],
                         ),
                       ),
                     ),
-              bottomNavigationBar: BottomNavigationBar(
-                type: BottomNavigationBarType.fixed,
-                items: const <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(
-                    icon: Icon(FontAwesomeIcons.ad),
-                    title: Text(
-                      'โปรโมชั่นแอพ',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(FontAwesomeIcons.ad),
-                    title: Text(
-                      'โปรโมชั่นร้านค้า',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ],
-                currentIndex: _selectedIndex,
-                onTap: _onItemTapped,
-              ),
             ));
   }
 
-  _onItemTapped(int index) {
-    print(index.toString());
-    _selectedIndex = index;
-    setState(() {});
-  }
-
   _buildAppPromote(AppDataModel appDataModel) {
-    int textfieldw = 40;
     return Container(
         margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
         padding: EdgeInsets.only(left: 5),
@@ -166,78 +129,9 @@ class AdminAdManageState extends State<AdminAdManagePage> {
                           .then((value) {
                         print('Delete PhotoComplete');
                       });
-                      await db.collection("promote").doc(e.id).delete();
-                      _setData(context.read<AppDataModel>());
                     }
-                  },
-                  icon: Icon(
-                    Icons.close,
-                    color: Colors.red,
-                  ))
-            ],
-          );
-        }).toList()));
-  }
-
-  _buildShopPromote(AppDataModel appDataModel) {
-    int textfieldw = 40;
-    return Container(
-        margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
-        padding: EdgeInsets.only(left: 5),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5),
-          color: Colors.white,
-        ),
-        child: Column(
-            children: shopPromote.map((e) {
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    margin: EdgeInsets.all(5),
-                    height: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5),
-                      color: Colors.white,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(5.0),
-                      child: CachedNetworkImage(
-                        key: UniqueKey(),
-                        imageUrl: e.url,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: Colors.black12,
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: Colors.black12,
-                          child: (Icon(
-                            Icons.error,
-                            color: Colors.red,
-                          )),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Style().textSizeColor(e.name, 14, Colors.black)
-                ],
-              ),
-              IconButton(
-                  onPressed: () async {
-                    var resule = await Dialogs().confirm(
-                        context, "ลบโฆษณา", 'ต้องการลบโฆษณา ' + e.name);
-                    if (resule == true) {
-                      await FirebaseStorage.instance
-                          .refFromURL(e.url)
-                          .delete()
-                          .then((value) {
-                        print('Delete PhotoComplete');
-                      });
-                      await db.collection("shopPromote").doc(e.id).delete();
-                      _setData(context.read<AppDataModel>());
-                    }
+                    await db.collection("adsApp").doc(e.id).delete();
+                    _setData(context.read<AppDataModel>());
                   },
                   icon: Icon(
                     Icons.close,

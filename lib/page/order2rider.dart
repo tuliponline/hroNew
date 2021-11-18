@@ -10,6 +10,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hro/model/AppDataModel.dart';
 import 'package:hro/model/UserOneModel.dart';
+import 'package:hro/model/driverModel.dart';
 import 'package:hro/model/orderModel.dart';
 import 'package:hro/model/shopModel.dart';
 import 'package:hro/utility/Dialogs.dart';
@@ -41,6 +42,8 @@ class Order2RiderState extends State<Order2RiderPage> {
   bool showAddress = false;
   String shopName, customerName, shopPhone, customerPhone;
   int amount = 0;
+
+  DriversModel riderDetail;
 
   _getData(AppDataModel appDataModel) async {
     orderIdSelect = appDataModel.orderIdSelected;
@@ -87,6 +90,17 @@ class Order2RiderState extends State<Order2RiderPage> {
 
           customerAddress = await getAddressName(customerLat, customerLng);
           print('CustomerAddress = ' + customerAddress);
+
+          if (orderDetail.driver != null && orderDetail.driver != "0") {
+            await db
+                .collection("drivers")
+                .doc(orderDetail.driver)
+                .get()
+                .then((value) {
+              var jsonData = jsonEncode(value.data());
+              riderDetail = driversModelFromJson(jsonData);
+            });
+          }
           setState(() {
             loadData = true;
           });
@@ -177,6 +191,7 @@ class Order2RiderState extends State<Order2RiderPage> {
                               color: Colors.white,
                               child: Column(
                                 children: [
+                                  _buildRider(context.read<AppDataModel>()),
                                   Row(
                                     children: [
                                       Expanded(
@@ -202,6 +217,35 @@ class Order2RiderState extends State<Order2RiderPage> {
                                       ),
                                     ],
                                   ),
+                                  (appDataModel.lastPage == "user")
+                                      ? Container()
+                                      : InkWell(
+                                          onTap: () {
+                                            appDataModel.orderDetailSelect =
+                                                orderDetailFromJson(
+                                                    jsonEncode(orderDetail));
+                                            appDataModel.userTypeSelect =
+                                                "rider";
+                                            appDataModel.orderIdSelected =
+                                                orderDetail.orderId;
+                                            Navigator.pushNamed(
+                                                context, "/chat-page");
+                                          },
+                                          child: Container(
+                                            margin: EdgeInsets.only(left: 8),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  FontAwesomeIcons
+                                                      .facebookMessenger,
+                                                  color: Style().darkColor,
+                                                ),
+                                                Style().textBlackSize(
+                                                    " แชตกับลูกค้า", 16),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
                                   if (showAddress == true)
                                     buildShopAddress(
                                         context.read<AppDataModel>()),
@@ -255,9 +299,22 @@ class Order2RiderState extends State<Order2RiderPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Style().textSizeColor('ส่วนลด', 14, Style().textColor),
+              (orderDetail.discount == null)
+                  ? Style().textSizeColor("-0 ฿", 14, Style().textColor)
+                  : Style().textSizeColor(
+                      "-" + orderDetail.discount + ' ฿', 14, Style().textColor)
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
               Style().textSizeColor('รวม', 16, Style().textColor),
               Style().textSizeColor(
-                  (int.parse(orderDetail.costDelivery) + amount).toString() +
+                  (int.parse(orderDetail.costDelivery) +
+                              amount -
+                              int.parse(orderDetail.discount))
+                          .toString() +
                       " ฿",
                   16,
                   Style().darkColor)
@@ -504,5 +561,43 @@ class Order2RiderState extends State<Order2RiderPage> {
     } else {
       // Could not open the map.
     }
+  }
+
+  _buildRider(AppDataModel appDataModel) {
+    return (orderDetail.driver == null ||
+            orderDetail.driver == "0" ||
+            riderDetail == null)
+        ? Container()
+        : Container(
+            padding: EdgeInsets.all(5),
+            margin: EdgeInsets.only(top: 3),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.all(3),
+                          child: CircleAvatar(
+                            backgroundImage:
+                                NetworkImage(riderDetail.driverPhotoUrl),
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Style().textBlackSize("ช้อมูล Rider", 14),
+                            Style().textBlackSize(riderDetail.driverName, 14),
+                            Style().textBlackSize(riderDetail.driverPhone, 10),
+                          ],
+                        )
+                      ],
+                    ),
+                  ],
+                )
+              ],
+            ));
   }
 }

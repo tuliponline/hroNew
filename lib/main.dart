@@ -1,20 +1,35 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:hro/page/ServiceSetup.dart';
+import 'package:hro/page/addCode.dart';
+import 'package:hro/page/addCreditPage.dart';
 import 'package:hro/page/addMenu.dart';
 import 'package:hro/page/addRiderPage.dart';
 import 'package:hro/page/addShopPage.dart';
+import 'package:hro/page/adminAdAdd.dart';
+import 'package:hro/page/adminBanlAccount.dart';
+import 'package:hro/page/adminCodePage.dart';
+import 'package:hro/page/adminContactData.dart';
 import 'package:hro/page/adminHomePage.dart';
 import 'package:hro/page/adminManageAd.dart';
 import 'package:hro/page/adminOrder.dart';
+import 'package:hro/page/adminSenNotify.dart';
 import 'package:hro/page/adminSystem.dart';
 import 'package:hro/page/allProductPage.dart';
+import 'package:hro/page/chatPage.dart';
+import 'package:hro/page/creditTransection.dart';
 import 'package:hro/page/editMenu.dart';
 import 'package:hro/page/editRiderPage.dart';
 import 'package:hro/page/editShopPage.dart';
 import 'package:hro/page/frist.dart';
+import 'package:hro/page/gasService.dart';
 import 'package:hro/page/googleMapPage.dart';
+import 'package:hro/page/googleMapPlaces.dart';
+import 'package:hro/page/googleMapShoeDistancsPage.dart';
 import 'package:hro/page/homePage.dart';
+import 'package:hro/page/martServiceAddDetail.dart';
+import 'package:hro/page/martServicePage.dart';
 import 'package:hro/page/menu.dart';
 import 'package:hro/page/order2rider.dart';
 import 'package:hro/page/orderDetailPage.dart';
@@ -31,9 +46,12 @@ import 'package:hro/page/shopHistoryPage.dart';
 import 'package:hro/page/shopReview.dart';
 import 'package:hro/page/showFristPage.dart';
 import 'package:hro/page/showHomePage.dart';
+import 'package:hro/page/showOrderGas.dart';
+import 'package:hro/page/showOrderMart.dart';
 import 'package:hro/page/showProduct.dart';
 import 'package:hro/page/splash.dart';
 import 'package:hro/page/storePage.dart';
+import 'package:hro/page/transactionTicket.dart';
 import 'package:provider/provider.dart';
 import 'model/AppDataModel.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -117,12 +135,32 @@ class MyApp extends StatelessWidget {
           "/Rating4Customer-page": (context) => Rating4CustomerPage(),
           "/shopHistory-page": (context) => ShopHistoryPage(),
           "/adminHome-page": (context) => AdminHomePage(),
-          "/asminSystem-page": (context) => AdminSystemPage(),
+          "/adminSystem-page": (context) => AdminSystemPage(),
           "/adminOrder-page": (context) => AdminOrderPage(),
           "/register-page": (context) => RegisterPage(),
           "/showFrist-page": (context) => ShowFristPage(),
           "/googleMap-page": (context) => GoogleMapPage(),
           "/adminAdmanage-page": (context) => AdminAdManagePage(),
+          '/googleMapShowDistancs-page': (context) =>
+              GoogleMapShowDistancsPage(),
+          "/chat-page": (context) => ChatPage(),
+          "/martService-page": (context) => MartServicePage(),
+          "/martServiceAddDetail-page": (context) => MartServiceAddDetailPage(),
+          "/showOrderMart-page": (context) => ShowOrderMartPage(),
+          "/creditTransection-page": (context) => CreditTransactionPage(),
+          "/gasService-page": (context) => GasServicePage(),
+          "/showOrderGas-page": (context) => ShowOrderGasPage(),
+          "/adminDoce-page": (context) => AdminCodePage(),
+          "/addCode-page": (context) => addCodePage(),
+          "/adminAdManage-page": (context) => AdminAdManagePage(),
+          "/adminAdAdd-page": (context) => AddminAddAdPage(),
+          "/serviceSetting-page": (context) => ServiceSettingPage(),
+          "/adminContactData-page": (context) => AdminContactDataPage(),
+          "/adminBankAccount-page": (context) => AdminBankAccountPage(),
+          "/addCreditPage-page": (context) => AddCreditPage(),
+          "/transectionTicket-page": (context) => TransactionTicketPage(),
+          "/adminSendNotify-page": (context) => AdminSendNotifyPage(),
+          "/RoutesWidget-page": (context) => RoutesWidget(),
         },
         initialRoute: initialRoute,
       ),

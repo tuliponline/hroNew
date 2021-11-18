@@ -4,7 +4,8 @@
 
 import 'dart:convert';
 
-ProductModel productModelFromJson(String str) => ProductModel.fromJson(json.decode(str));
+ProductModel productModelFromJson(String str) =>
+    ProductModel.fromJson(json.decode(str));
 
 String productModelToJson(ProductModel data) => json.encode(data.toJson());
 
@@ -18,6 +19,7 @@ class ProductModel {
     this.productStatus,
     this.productPrice,
     this.productName,
+    this.productOriPrice,
   });
 
   String productPhotoUrl;
@@ -28,26 +30,29 @@ class ProductModel {
   String productStatus;
   String productPrice;
   String productName;
+  String productOriPrice;
 
   factory ProductModel.fromJson(Map<String, dynamic> json) => ProductModel(
-    productPhotoUrl: json["product_photoUrl"],
-    productTime: json["product_time"],
-    productDetail: json["product_detail"],
-    productId: json["product_id"],
-    shopUid: json["shop_uid"],
-    productStatus: json["product_status"],
-    productPrice: json["product_price"],
-    productName: json["product_name"],
-  );
+        productPhotoUrl: json["product_photoUrl"],
+        productTime: json["product_time"],
+        productDetail: json["product_detail"],
+        productId: json["product_id"],
+        shopUid: json["shop_uid"],
+        productStatus: json["product_status"],
+        productPrice: json["product_price"],
+        productName: json["product_name"],
+        productOriPrice: json["product_OriPrice"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "product_photoUrl": productPhotoUrl,
-    "product_time": productTime,
-    "product_detail": productDetail,
-    "product_id": productId,
-    "shop_uid": shopUid,
-    "product_status": productStatus,
-    "product_price": productPrice,
-    "product_name": productName,
-  };
+        "product_photoUrl": productPhotoUrl,
+        "product_time": productTime,
+        "product_detail": productDetail,
+        "product_id": productId,
+        "shop_uid": shopUid,
+        "product_status": productStatus,
+        "product_price": productPrice,
+        "product_name": productName,
+        "product_OriPrice": productOriPrice,
+      };
 }

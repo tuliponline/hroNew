@@ -256,10 +256,10 @@ class StoreState extends State<StorePage> {
                                             if (appDataModel
                                                     .currentOrder.length ==
                                                 0) {
-                                              appDataModel.currentOrder = [];
+                                              // appDataModel.currentOrder = [];
                                               Navigator.pop(context);
                                             } else {
-                                              appDataModel.currentOrder = [];
+                                              // appDataModel.currentOrder = [];
                                               Navigator.pushNamedAndRemoveUntil(
                                                   context,
                                                   '/showHome-page',
@@ -478,7 +478,13 @@ class StoreState extends State<StorePage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Icon(Icons.motorcycle),
+            InkWell(
+                onTap: () {
+                  if (appDataModel.os != "ios") {
+                    Navigator.pushNamed(context, "/googleMapShowDistancs-page");
+                  }
+                },
+                child: Icon(Icons.motorcycle)),
             Style().textSizeColor(
                 ' $distanceString กิโลเมตร', 14, Style().textColor),
           ],
@@ -652,18 +658,18 @@ class StoreState extends State<StorePage> {
                                 allProductData[index].productPrice + " ฿",
                                 16,
                                 Style().darkColor),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.motorcycle,
-                                  size: 20,
-                                ),
-                                Style().textSizeColor(
-                                    costDelivery.toString() + ' ฿',
-                                    14,
-                                    Style().shopPrimaryColor),
-                              ],
-                            )
+                            // Row(
+                            //   children: [
+                            //     Icon(
+                            //       Icons.motorcycle,
+                            //       size: 20,
+                            //     ),
+                            //     Style().textSizeColor(
+                            //         costDelivery.toString() + ' ฿',
+                            //         14,
+                            //         Style().shopPrimaryColor),
+                            //   ],
+                            // )
                           ],
                         ),
                       )

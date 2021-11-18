@@ -6,10 +6,11 @@ import 'package:progress_indicators/progress_indicators.dart';
 
 class Style {
   Color primaryColorHro = Color(0xff039be5);
+  Color okColor = Color(0xff009c86);
 
   Color primaryColor = Color(0xff2bceb6);
   Color lightColor = Color(0xff6fffe8);
-  Color darkColor = Color(0xff039be5);
+  Color darkColor = Color(0xff009c86);
 
   Color secondColor = Color(0xffffc648);
   Color secondLightColor = Color(0xfffff97a);
@@ -74,6 +75,12 @@ class Style {
           ),
         ],
       );
+  Widget underLine() => Container(
+      margin: EdgeInsets.all(1),
+      child: Divider(
+        color: Colors.grey,
+        height: 0,
+      ));
 
   Widget textFlexibleColorSize(
           String string, int maxLines, double size, Color color) =>

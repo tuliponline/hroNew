@@ -8,6 +8,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hro/model/AppDataModel.dart';
 import 'package:hro/model/allShopModel.dart';
 import 'package:hro/model/productsModel.dart';
+import 'package:hro/utility/ranDomData.dart';
 import 'package:hro/utility/snapshot2list.dart';
 import 'package:hro/utility/style.dart';
 import 'package:provider/provider.dart';
@@ -46,6 +47,7 @@ class AllProductState extends State<AllProductsPage> {
         .then((value) async {
       var jsonData = await setList2Json(value);
       _productsDataRow = productsModelFromJson(jsonData);
+      _productsDataRow = randomData(_productsDataRow);
 
       List<dynamic> orderRemove = [];
       _productsDataRow.asMap().forEach((i, e) {
@@ -76,6 +78,7 @@ class AllProductState extends State<AllProductsPage> {
           .toList();
       shopCount = _shopsDataRow2.length;
       _shopsData = _shopsDataRow2;
+      _shopsData = randomData(_shopsData);
     });
 
     setState(() {
@@ -281,7 +284,7 @@ class AllProductState extends State<AllProductsPage> {
                   onTap: () async {
                     appDataModel.storeSelectId = _shopsData[i].shopUid;
                     await Navigator.pushNamed(context, '/store-Page');
-                    appDataModel.currentOrder = [];
+                    // appDataModel.currentOrder = [];
                     //appDataModel.currentOrder.clear();
                   },
                   child: Container(

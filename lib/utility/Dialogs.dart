@@ -2,12 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hro/utility/regexText.dart';
 import 'package:hro/utility/style.dart';
-
-import 'package:toast/toast.dart';
 
 class Dialogs {
   var _textFildControlor = TextEditingController();
@@ -46,8 +45,14 @@ class Dialogs {
                     if (_textFildControlor.text.length > 0) {
                       Navigator.pop(context, [true, _textFildControlor.text]);
                     } else {
-                      Toast.show("โปรดกรอกข้อมูล", context,
-                          duration: Toast.LENGTH_SHORT, gravity: Toast.CENTER);
+                      Fluttertoast.showToast(
+                          msg: "โปรดกรอกข้อมูล",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.CENTER,
+                          timeInSecForIosWeb: 1,
+                          backgroundColor: Colors.red,
+                          textColor: Colors.white,
+                          fontSize: 16.0);
                     }
                   },
                   child: Text('ตกลง'))
@@ -89,8 +94,14 @@ class Dialogs {
                     if (phoneRegex(_textFildControlor.text)) {
                       Navigator.pop(context, _textFildControlor.text);
                     } else {
-                      Toast.show("หมายเลขไม่ถูกต้อง", context,
-                          duration: Toast.LENGTH_SHORT, gravity: Toast.CENTER);
+                      Fluttertoast.showToast(
+                          msg: "หมายเลขไม่ถูกต้อง",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.CENTER,
+                          timeInSecForIosWeb: 1,
+                          backgroundColor: Colors.red,
+                          textColor: Colors.white,
+                          fontSize: 16.0);
                     }
                   },
                   child: Text('ตกลง'))
@@ -126,8 +137,14 @@ class Dialogs {
                     if (phoneRegex(_textFildControlor.text)) {
                       Navigator.pop(context, _textFildControlor.text);
                     } else {
-                      Toast.show("หมายเลขไม่ถูกต้อง", context,
-                          duration: Toast.LENGTH_SHORT, gravity: Toast.CENTER);
+                      Fluttertoast.showToast(
+                          msg: "หมายเลขไม่ถูกต้อง",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.CENTER,
+                          timeInSecForIosWeb: 1,
+                          backgroundColor: Colors.red,
+                          textColor: Colors.white,
+                          fontSize: 16.0);
                     }
                   },
                   child: Text('ตกลง'))
@@ -272,9 +289,14 @@ class Dialogs {
                         Navigator.pop(
                             context, ['YES', _textFildControlor.text]);
                       } else {
-                        Toast.show('โปรดกรอก Track Number', context,
-                            duration: Toast.LENGTH_SHORT,
-                            gravity: Toast.CENTER);
+                        Fluttertoast.showToast(
+                            msg: "โปรดกรอก Track Number",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.CENTER,
+                            timeInSecForIosWeb: 1,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                            fontSize: 16.0);
                       }
                     } else {
                       Navigator.pop(context, ['YES', _textFildControlor.text]);

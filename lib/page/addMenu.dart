@@ -8,8 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hro/model/AppDataModel.dart';
 import 'package:hro/model/productModel.dart';
+import 'package:hro/model/setupModel.dart';
 import 'package:hro/utility/Dialogs.dart';
+import 'package:hro/utility/calPercen.dart';
 import 'package:hro/utility/dialog.dart';
+import 'package:hro/utility/fireBaseFunction.dart';
 import 'package:hro/utility/getTimeNow.dart';
 import 'package:hro/utility/notifySend.dart';
 import 'package:hro/utility/regexText.dart';
@@ -41,6 +44,20 @@ class AddMenuState extends State<AddMenuPage> {
   bool updating = false;
 
   FirebaseFirestore db = FirebaseFirestore.instance;
+  ProductSetupModel productSetupData;
+
+  _getConfog() async {
+    var _configDb = await dbGetDataOne("getProductSetup", "setup", "product");
+    if (_configDb[0]) {
+      productSetupData = productSetupModelFromJson(_configDb[1]);
+    }
+  }
+
+  @override
+  void initState() {
+    _getConfog();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -409,12 +426,17 @@ class AddMenuState extends State<AddMenuPage> {
             photoUrl = downloadUrl;
             print('photoUrl' + photoUrl);
 
+            int _calGpValue = await calPercen(
+                int.parse(_priceFood.text), int.parse(productSetupData.gp));
+
+            int _fullPrice = int.parse(_priceFood.text) + _calGpValue;
             ProductModel productModel = ProductModel(
                 shopUid: appDataModel.userOneModel.uid,
                 productName: _nameFood.text,
                 productPhotoUrl: photoUrl,
                 productDetail: _detailFood.text,
-                productPrice: _priceFood.text.toString(),
+                productOriPrice: _priceFood.text.toString(),
+                productPrice: _fullPrice.toString(),
                 productTime: timeFood.toString(),
                 productId: productId,
                 productStatus: '3');

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:badges/badges.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -21,11 +22,11 @@ class OrderListState extends State<OrderListPage> {
   FirebaseFirestore db = FirebaseFirestore.instance;
 
   bool getOrderStatus = false;
-  List<OrderList> orderListModel = [];
-  List<OrderList> orderListInProcess = [];
-  List<OrderList> orderListComplete = [];
-  List<OrderList> orderListCancel = [];
-  List<OrderList> orderListFail = [];
+  List<OrderList> orderListModel;
+  List<OrderList> orderListInProcess;
+  List<OrderList> orderListComplete;
+  List<OrderList> orderListCancel;
+  List<OrderList> orderListFail;
 
   List<RatingListModel> ratingListModel;
 
@@ -100,6 +101,24 @@ class OrderListState extends State<OrderListPage> {
     });
   }
 
+  _realTimeDB(AppDataModel appDataModel) async {
+    db.collection("orders").snapshots().listen((event) async {
+      await _getOrderListAll(context.read<AppDataModel>());
+      if (this.mounted) {
+        // check whether the state object is in tree
+        setState(() {
+          // make changes here
+        });
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    _realTimeDB(context.read<AppDataModel>());
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (getOrderStatus == false) _getOrderListAll(context.read<AppDataModel>());
@@ -118,9 +137,11 @@ class OrderListState extends State<OrderListPage> {
               //     onPressed: () {}),
               title: Style().textDarkAppbar('รายการ Order'),
             ),
-            body: Container(
-              child: buildOrderList(),
-            ),
+            body: (orderListInProcess == null)
+                ? Center(child: Style().loading())
+                : Container(
+                    child: buildOrderList(),
+                  ),
             bottomNavigationBar: BottomNavigationBar(
               items: const <BottomNavigationBarItem>[
                 BottomNavigationBarItem(
@@ -205,87 +226,130 @@ class OrderListState extends State<OrderListPage> {
                       children: orderListInProcess.map((e) {
                         return InkWell(
                           onTap: () async {
-                            appDataModel.orderIdSelected = e.orderId;
-                            var result = await Navigator.pushNamed(
-                                context, "/orderTrack-page");
-                            debugPrint('resultBackFromOrderShow = $result');
-                            if (result != null) {
-                              setState(() {
-                                getOrderStatus = false;
-                              });
+                            if (e.orderType == "mart") {
+                              appDataModel.orderDetailSelect =
+                                  orderDetailFromJson(jsonEncode(e));
+                              Navigator.pushNamed(
+                                  context, "/showOrderMart-page",
+                                  arguments: "user");
+                            } else if (e.orderType == "gas") {
+                              appDataModel.orderDetailSelect =
+                                  orderDetailFromJson(jsonEncode(e));
+                              Navigator.pushNamed(context, "/showOrderGas-page",
+                                  arguments: "user");
+                            } else {
+                              appDataModel.orderIdSelected = e.orderId;
+                              var result = await Navigator.pushNamed(
+                                  context, "/orderTrack-page");
+                              debugPrint('resultBackFromOrderShow = $result');
+                              if (result != null) {
+                                setState(() {
+                                  getOrderStatus = false;
+                                });
+                              }
                             }
                           },
-                          child: Row(
-                            children: [
-                              Expanded(
-                                  child: ListTile(
-                                title: Row(
-                                  children: [
-                                    Style().textSizeColor(
-                                        e.startTime, 14, Style().textColor),
-                                    Style().textSizeColor(
-                                        " " +
-                                            (int.parse(e.costDelivery) +
-                                                    int.parse(e.amount))
-                                                .toString() +
-                                            '฿',
-                                        18,
-                                        Style().darkColor)
-                                  ],
-                                ),
-                                subtitle: Style().textSizeColor(
-                                    'Order No.' + e.orderId,
-                                    12,
-                                    Style().textColor),
-                              )),
-                              Column(
+                          child: InkWell(
+                            onTap: () {
+                              appDataModel.orderDetailSelect =
+                                  orderDetailFromJson(jsonEncode(e));
+                              appDataModel.userTypeSelect = "user";
+                              appDataModel.orderIdSelected = e.orderId;
+                              Navigator.pushNamed(context, "/chat-page");
+                            },
+                            child: Container(
+                              margin: EdgeInsets.only(top: 10, bottom: 3),
+                              child: Column(
                                 children: [
-                                  (e.status == '1')
-                                      ? Container(
-                                          child: Column(
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
                                             children: [
-                                              Icon(
-                                                FontAwesomeIcons.fileSignature,
-                                                color: Style().darkColor,
-                                              ),
-                                              Style().textSizeColor('รับ Order',
-                                                  12, Style().textColor)
+                                              Style().textSizeColor(e.startTime,
+                                                  14, Style().textColor),
+                                              Style().textSizeColor(
+                                                  " " +
+                                                      (int.parse(e.costDelivery) +
+                                                              int.parse(
+                                                                  e.amount))
+                                                          .toString() +
+                                                      '฿',
+                                                  18,
+                                                  Style().darkColor)
                                             ],
                                           ),
-                                        )
-                                      : (e.status == '2' || e.status == '3')
-                                          ? Container(
-                                              child: Column(
-                                                children: [
-                                                  Icon(
-                                                    FontAwesomeIcons.clock,
-                                                    color: Style().darkColor,
-                                                  ),
-                                                  Style().textSizeColor(
-                                                      'กำลังเตรียมสินค้า',
-                                                      12,
-                                                      Style().textColor)
-                                                ],
-                                              ),
-                                            )
-                                          : (e.status == '4')
+                                          Style().textSizeColor(
+                                              'Order No.' + e.orderId,
+                                              12,
+                                              Style().textColor),
+                                          (e.status == "1")
+                                              ? Container()
+                                              : Row(
+                                                  children: [
+                                                    (e.chatRider != null &&
+                                                            e.chatUser == "1")
+                                                        ? Badge(
+                                                            badgeColor: Colors
+                                                                .red,
+                                                            position:
+                                                                BadgePosition
+                                                                    .topEnd(
+                                                                        top: -5,
+                                                                        end:
+                                                                            -5),
+                                                            shape: BadgeShape
+                                                                .circle,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        100),
+                                                            child: Icon(
+                                                                FontAwesomeIcons
+                                                                    .facebookMessenger,
+                                                                size: 30,
+                                                                color: Colors
+                                                                    .blue),
+                                                            badgeContent: null)
+                                                        : Icon(
+                                                            FontAwesomeIcons
+                                                                .facebookMessenger,
+                                                            size: 30,
+                                                            color: Colors.blue),
+                                                    Style().textBlackSize(
+                                                        " แชตกับRider"
+                                                            .toString(),
+                                                        14),
+                                                  ],
+                                                ),
+                                        ],
+                                      ),
+                                      Column(
+                                        children: [
+                                          (e.status == '1')
                                               ? Container(
                                                   child: Column(
                                                     children: [
                                                       Icon(
                                                         FontAwesomeIcons
-                                                            .motorcycle,
+                                                            .fileSignature,
                                                         color:
                                                             Style().darkColor,
                                                       ),
                                                       Style().textSizeColor(
-                                                          'กำลังออกจัดส่ง',
+                                                          'รับ Order',
                                                           12,
                                                           Style().textColor)
                                                     ],
                                                   ),
                                                 )
-                                              : (e.status == '9')
+                                              : (e.status == '2' ||
+                                                      e.status == '3')
                                                   ? Container(
                                                       child: Column(
                                                         children: [
@@ -295,17 +359,81 @@ class OrderListState extends State<OrderListPage> {
                                                             color: Style()
                                                                 .darkColor,
                                                           ),
-                                                          Style().textSizeColor(
-                                                              'รอพนักงานตอบรับ',
-                                                              12,
-                                                              Style().textColor)
+                                                          (e.orderType ==
+                                                                  "mart")
+                                                              ? Style().textSizeColor(
+                                                                  'Rider กำลังออกซื้อของ',
+                                                                  12,
+                                                                  Style()
+                                                                      .textColor)
+                                                              : (e.orderType ==
+                                                                      "gas")
+                                                                  ? Style().textSizeColor(
+                                                                      'Riderออกรับถังแก๊ส',
+                                                                      12,
+                                                                      Style()
+                                                                          .textColor)
+                                                                  : Style().textSizeColor(
+                                                                      'กำลังเตรียมสินค้า',
+                                                                      12,
+                                                                      Style()
+                                                                          .textColor)
                                                         ],
                                                       ),
                                                     )
-                                                  : Container(),
+                                                  : (e.status == '4')
+                                                      ? Container(
+                                                          child: Column(
+                                                            children: [
+                                                              Icon(
+                                                                FontAwesomeIcons
+                                                                    .motorcycle,
+                                                                color: Style()
+                                                                    .darkColor,
+                                                              ),
+                                                              (e.orderType ==
+                                                                      "gas")
+                                                                  ? Style().textSizeColor(
+                                                                      'Riderกำลังส่งถังแก๊สกลับ',
+                                                                      12,
+                                                                      Style()
+                                                                          .textColor)
+                                                                  : Style().textSizeColor(
+                                                                      'กำลังออกจัดส่ง',
+                                                                      12,
+                                                                      Style()
+                                                                          .textColor)
+                                                            ],
+                                                          ),
+                                                        )
+                                                      : (e.status == '9')
+                                                          ? Container(
+                                                              child: Column(
+                                                                children: [
+                                                                  Icon(
+                                                                    FontAwesomeIcons
+                                                                        .clock,
+                                                                    color: Style()
+                                                                        .darkColor,
+                                                                  ),
+                                                                  Style().textSizeColor(
+                                                                      'รอพนักงานตอบรับ',
+                                                                      12,
+                                                                      Style()
+                                                                          .textColor)
+                                                                ],
+                                                              ),
+                                                            )
+                                                          : Container(),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  Padding(padding: EdgeInsets.only(top: 10)),
+                                  Style().underLine()
                                 ],
                               ),
-                            ],
+                            ),
                           ),
                         );
                       }).toList(),
@@ -323,7 +451,6 @@ class OrderListState extends State<OrderListPage> {
   }
 
   Container buildInProComplete(AppDataModel appDataModel) {
-    print('cpLength = ' + orderListComplete.length.toString());
     return (_selectedIndex == 1)
         ? (orderListComplete != null && orderListComplete.length != 0)
             ? Container(
@@ -350,8 +477,23 @@ class OrderListState extends State<OrderListPage> {
 
                         return InkWell(
                             onTap: () {
-                              appDataModel.orderIdSelected = e.orderId;
-                              Navigator.pushNamed(context, "/orderTrack-page");
+                              if (e.orderType == "mart") {
+                                appDataModel.orderDetailSelect =
+                                    orderDetailFromJson(jsonEncode(e));
+                                Navigator.pushNamed(
+                                    context, "/showOrderMart-page",
+                                    arguments: "user");
+                              } else if (e.orderType == "gas") {
+                                appDataModel.orderDetailSelect =
+                                    orderDetailFromJson(jsonEncode(e));
+                                Navigator.pushNamed(
+                                    context, "/showOrderGas-page",
+                                    arguments: "user");
+                              } else {
+                                appDataModel.orderIdSelected = e.orderId;
+                                Navigator.pushNamed(
+                                    context, "/orderTrack-page");
+                              }
                             },
                             child: Row(children: [
                               Expanded(
@@ -468,8 +610,23 @@ class OrderListState extends State<OrderListPage> {
                       children: orderListFail.map((e) {
                         return InkWell(
                             onTap: () {
-                              appDataModel.orderIdSelected = e.orderId;
-                              Navigator.pushNamed(context, "/orderTrack-page");
+                              if (e.orderType == "mart") {
+                                appDataModel.orderDetailSelect =
+                                    orderDetailFromJson(jsonEncode(e));
+                                Navigator.pushNamed(
+                                    context, "/showOrderMart-page",
+                                    arguments: "user");
+                              } else if (e.orderType == "gas") {
+                                appDataModel.orderDetailSelect =
+                                    orderDetailFromJson(jsonEncode(e));
+                                Navigator.pushNamed(
+                                    context, "/showOrderGas-page",
+                                    arguments: "user");
+                              } else {
+                                appDataModel.orderIdSelected = e.orderId;
+                                Navigator.pushNamed(
+                                    context, "/orderTrack-page");
+                              }
                             },
                             child: Row(children: [
                               Expanded(
@@ -536,8 +693,17 @@ class OrderListState extends State<OrderListPage> {
                       children: orderListCancel.map((e) {
                         return InkWell(
                             onTap: () {
-                              appDataModel.orderIdSelected = e.orderId;
-                              Navigator.pushNamed(context, "/orderTrack-page");
+                              if (e.orderType == "mart") {
+                                appDataModel.orderDetailSelect =
+                                    orderDetailFromJson(jsonEncode(e));
+                                Navigator.pushNamed(
+                                    context, "/showOrderMart-page",
+                                    arguments: "user");
+                              } else {
+                                appDataModel.orderIdSelected = e.orderId;
+                                Navigator.pushNamed(
+                                    context, "/orderTrack-page");
+                              }
                             },
                             child: Row(children: [
                               Expanded(

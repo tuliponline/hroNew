@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/src/list_extensions.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,8 +26,8 @@ class AdminOrderState extends State<AdminOrderPage> {
   List<OrderList> orderList;
 
   List statusString = [
-    {"value": "0", "text": "ร้านค้ายกเลิก"},
-    {"value": "1", "text": "รอ Rider ตแบรับ"},
+    {"value": "0", "text": "ยกเลิก"},
+    {"value": "1", "text": "รอ Rider ตอบรับ"},
     {"value": "2", "text": "Rider ยืนยันแล้ว"},
     {"value": "3", "text": "ร้านค้ากำลังเตียม"},
     {"value": "4", "text": "กำลังออกส่ง"},
@@ -152,8 +154,20 @@ class AdminOrderState extends State<AdminOrderPage> {
                       List<String> locationLatLng = e.location.split(',');
                       appDataModel.latOrder = double.parse(locationLatLng[0]);
                       appDataModel.lngOrder = double.parse(locationLatLng[1]);
-
-                      Navigator.pushNamed(context, "/order2Rider-page");
+                      print(e.orderType);
+                      if (e.orderType == null || e.orderType == "narmal") {
+                        Navigator.pushNamed(context, "/order2Rider-page");
+                      } else if (e.orderType == "mart") {
+                        appDataModel.orderDetailSelect =
+                            orderDetailFromJson(jsonEncode(e));
+                        Navigator.pushNamed(context, "/showOrderMart-page",
+                            arguments: "admin");
+                      } else if (e.orderType == "gas") {
+                        appDataModel.orderDetailSelect =
+                            orderDetailFromJson(jsonEncode(e));
+                        Navigator.pushNamed(context, "/showOrderGas-page",
+                            arguments: "admin");
+                      }
                     },
                     child: Container(
                       decoration: BoxDecoration(

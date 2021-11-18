@@ -2,19 +2,26 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hro/model/AppDataModel.dart';
+import 'package:hro/model/CodeModel.dart';
 import 'package:hro/model/appStatusModel.dart';
 import 'package:hro/model/cartModel.dart';
+import 'package:hro/model/codeUseModel.dart';
 import 'package:hro/model/driverModel.dart';
 import 'package:hro/model/locationSetupModel.dart';
+import 'package:hro/model/setupModel.dart';
+import 'package:hro/model/shopModel.dart';
 
 import 'package:hro/utility/Dialogs.dart';
 import 'package:hro/utility/addLog.dart';
+import 'package:hro/utility/calPercen.dart';
 import 'package:hro/utility/checkDriverOnline.dart';
 import 'package:hro/utility/checkLocation.dart';
 import 'package:hro/utility/getAddressName.dart';
+import 'package:hro/utility/getTimeNow.dart';
 import 'package:hro/utility/notifySend.dart';
 
 import 'package:hro/utility/snapshot2list.dart';
@@ -23,6 +30,8 @@ import 'package:intl/intl.dart';
 
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+
+import 'fireBaseFunctions.dart';
 
 class OrderDetailPage extends StatefulWidget {
   @override
@@ -39,7 +48,14 @@ class OrderDetailState extends State<OrderDetailPage> {
   String addressName;
 
   int costDelivery;
+  int costDelivery4Rider;
   int amount;
+  int amountOri;
+
+  bool codeDiscountStatus = false;
+  String codeString = "ใส่โค้ดส่วนลด";
+  int discount = 0;
+  CodeOneModel codeOneModel;
   double lat, lng;
 
   String token;
@@ -62,6 +78,8 @@ class OrderDetailState extends State<OrderDetailPage> {
   String orderId;
 
   bool addingOrder = false;
+  ProductSetupModel productSetupData;
+  ShopModel shopDetail;
 
   _getRiderOnline(AppDataModel appDataModel) async {
     riderOnline = 0;
@@ -102,12 +120,26 @@ class OrderDetailState extends State<OrderDetailPage> {
           }
         });
 
-        print("riderOnline " + riderOnline.toString());
-        print("riderFree " + riderFree.toString());
-
         _calData(context.read<AppDataModel>());
       });
     });
+  }
+
+  _getConfog(AppDataModel appDataModel) async {
+    print("shopIddd" + appDataModel.storeSelectId);
+    var _shopDataDb =
+        await dbGetDataOne("getShopData", "shops", appDataModel.storeSelectId);
+    if (_shopDataDb[0]) {
+      shopDetail = shopModelFromJson(_shopDataDb[1]);
+      var shopLOcation = shopDetail.shopLocation.split(",");
+      appDataModel.latShop = double.parse(shopLOcation[0]);
+      appDataModel.lngShop = double.parse(shopLOcation[1]);
+    }
+
+    var _configDb = await dbGetDataOne("getProductSetup", "setup", "product");
+    if (_configDb[0]) {
+      productSetupData = productSetupModelFromJson(_configDb[1]);
+    }
   }
 
   Future<Null> _calData(AppDataModel appDataModel) async {
@@ -122,7 +154,20 @@ class OrderDetailState extends State<OrderDetailPage> {
     inService = await checkLocationLimit(appDataModel.latStart,
         appDataModel.lngStart, lat, lng, appDataModel.distanceLimit);
     print("inService = " + inService.toString());
+    int _allPcs = 0;
+    int _allAmount = 0;
+    int _allAmountOri = 0;
+
+    appDataModel.currentOrder.forEach((element) {
+      _allPcs += int.parse(element.pcs);
+      _allAmount += (int.parse(element.pcs) * int.parse(element.price));
+      _allAmountOri += (int.parse(element.pcs) * int.parse(element.oriPrice));
+    });
     amount = appDataModel.allPrice;
+    amountOri = _allAmountOri;
+
+    appDataModel.allPcs = _allPcs;
+    appDataModel.allPrice = _allAmount;
     int costPerKm;
     List<String> distanceAndCost = await calDistanceAndCostDelivery(
         appDataModel.latShop,
@@ -139,6 +184,9 @@ class OrderDetailState extends State<OrderDetailPage> {
 
     if (appDataModel.allPcs == 1) {
       costDelivery = costPerKm;
+      var _calGp = await calPercen(
+          costDelivery, int.parse(productSetupData.shareForApp));
+      costDelivery4Rider = costDelivery - _calGp;
     } else {
       int pcs;
       int addCost;
@@ -147,6 +195,9 @@ class OrderDetailState extends State<OrderDetailPage> {
       addCost =
           pcs * int.parse(appDataModel.locationSetupModel.costDeliveryPerPcs);
       costDelivery = costPerKm + addCost;
+      var _calGp = await calPercen(
+          costDelivery, int.parse(productSetupData.shareForApp));
+      costDelivery4Rider = costDelivery - _calGp;
     }
     setState(() {
       checkRiderOnline = true;
@@ -171,16 +222,19 @@ class OrderDetailState extends State<OrderDetailPage> {
   _onlyCalData(AppDataModel appDataModel) async {
     int _allPcs = 0;
     int _allAmount = 0;
+    int _allAmountOri = 0;
 
     appDataModel.currentOrder.forEach((element) {
       _allPcs += int.parse(element.pcs);
       _allAmount += (int.parse(element.pcs) * int.parse(element.price));
+      _allAmountOri += (int.parse(element.pcs) * int.parse(element.oriPrice));
     });
 
     appDataModel.allPcs = _allPcs;
     appDataModel.allPrice = _allAmount;
 
     amount = appDataModel.allPrice;
+    amountOri = _allAmountOri;
     int costPerKm;
     List<String> distanceAndCost = await calDistanceAndCostDelivery(
         appDataModel.latShop,
@@ -197,6 +251,9 @@ class OrderDetailState extends State<OrderDetailPage> {
 
     if (appDataModel.allPcs == 1) {
       costDelivery = costPerKm;
+      var _calGp = await calPercen(
+          costDelivery, int.parse(productSetupData.shareForApp));
+      costDelivery4Rider = costDelivery - _calGp;
     } else {
       int pcs;
       int addCost;
@@ -205,11 +262,20 @@ class OrderDetailState extends State<OrderDetailPage> {
       addCost =
           pcs * int.parse(appDataModel.locationSetupModel.costDeliveryPerPcs);
       costDelivery = costPerKm + addCost;
+      var _calGp = await calPercen(
+          costDelivery, int.parse(productSetupData.shareForApp));
+      costDelivery4Rider = costDelivery - _calGp;
     }
     if (_allPcs < 1) Navigator.pop(context);
     setState(() {
       checkRiderOnline = true;
     });
+  }
+
+  @override
+  void initState() {
+    _getConfog(context.read<AppDataModel>());
+    super.initState();
   }
 
   @override
@@ -232,7 +298,9 @@ class OrderDetailState extends State<OrderDetailPage> {
                     }),
               ),
               body: Container(
-                child: (addressName == null || addingOrder == true)
+                child: (amountOri == null ||
+                        addressName == null ||
+                        addingOrder == true)
                     ? Center(child: Style().loading())
                     : SingleChildScrollView(
                         child: Column(
@@ -247,10 +315,7 @@ class OrderDetailState extends State<OrderDetailPage> {
                                         //_getOrder(context.read<AppDataModel>());
                                       },
                                       child: Style().textBlackSize(
-                                          "นอกพื้นที่ให้บริการ เกิน " +
-                                              appDataModel.distanceLimit
-                                                  .toString() +
-                                              " กม. จากอากาศ",
+                                          "สถานที่ส่งอยู่นอกพื้นที่ให้บริการ",
                                           14),
                                       style: ElevatedButton.styleFrom(
                                           primary: Colors.yellow,
@@ -368,172 +433,233 @@ class OrderDetailState extends State<OrderDetailPage> {
             ));
   }
 
-  Container buildOrderDetail(AppDataModel appDataModel) {
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.all(10),
-      margin: EdgeInsets.only(top: 3),
-      child: Column(
-        children: [
-          Container(
-            child: Style().textSizeColor('สรุปรายการ', 16, Style().textColor),
-          ),
-          Container(
-              margin: EdgeInsets.all(1),
-              child: Divider(
-                color: Colors.grey,
-                height: 0,
-              )),
-          Column(
-            children: appDataModel.currentOrder.map((e) {
-              int index = appDataModel.currentOrder.indexOf(e);
-              int pcs = int.parse(e.pcs);
-              print('e = ' + e.productName);
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                      child: Column(
-                    children: [
-                      ListTile(
-                        title: (e.productName?.isEmpty ?? true)
-                            ? Text('')
-                            : Style().textFlexibleBackSize(
-                                (index + 1).toString() + ". " + e.productName,
-                                2,
-                                14,
-                              ),
-                        subtitle: (e.comment?.isEmpty ?? true)
-                            ? null
-                            : Style().textSizeColor(
-                                e.comment, 12, Style().textColor),
-                      ),
-                      Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(8),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  padding: EdgeInsets.zero,
-                                  constraints: BoxConstraints(),
-                                  icon: Icon(Icons.remove_circle,
-                                      color: Colors.red, size: 20),
-                                  onPressed: () => setState(() {
-                                    if (pcs > 1) {
-                                      final newValue = pcs - 1;
-                                      appDataModel.currentOrder[index].pcs =
-                                          newValue.clamp(1, 50).toString();
-                                      _onlyCalData(appDataModel)(
-                                          context.read<AppDataModel>());
-                                    }
-                                  }),
-                                ),
-                                Container(
-                                  margin: EdgeInsets.only(left: 5, right: 5),
-                                  child: Style().textSizeColor(
-                                      pcs.toString(), 12, Style().textColor),
-                                ),
-                                IconButton(
-                                  padding: EdgeInsets.zero,
-                                  constraints: BoxConstraints(),
-                                  icon: Icon(
-                                    Icons.add_circle,
-                                    color: Colors.green,
-                                    size: 20,
-                                  ),
-                                  onPressed: () => setState(() {
-                                    final newValue = pcs + 1;
-                                    appDataModel.currentOrder[index].pcs =
-                                        newValue.clamp(1, 50).toString();
-                                    _onlyCalData(appDataModel)(
-                                        context.read<AppDataModel>());
-                                  }),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
-                    ],
-                  )),
-                  Column(
-                    children: [
-                      Style().textSizeColor(
-                          (int.parse(e.price) * int.parse(e.pcs)).toString() +
-                              ' ฿',
-                          14,
-                          Style().textColor),
-                      Style().textSizeColor(e.price + ' ฿/จำนวน x ' + e.pcs, 12,
-                          Style().darkColor)
-                    ],
-                  ),
-                  IconButton(
-                      onPressed: () async {
-                        var result = await Dialogs().confirm(
-                            context, "ลบสินค้า", "ลบสิ้นค้าออกจาก Order");
-                        if (result == true) {
-                          appDataModel.currentOrder.removeAt(index);
-                          _onlyCalData(context.read<AppDataModel>());
-                        }
-                      },
-                      icon: Icon(
-                        Icons.delete,
-                        color: Colors.orange,
-                        size: 20,
-                      ))
-                ],
-              );
-            }).toList(),
-          ),
-          Container(
-              margin: EdgeInsets.all(1),
-              child: Divider(
-                color: Colors.grey,
-                height: 0,
-              )),
-          Container(
-            margin: EdgeInsets.only(top: 5),
+  buildOrderDetail(AppDataModel appDataModel) {
+    return (amountOri == null)
+        ? Container()
+        : Container(
+            color: Colors.white,
+            padding: EdgeInsets.all(10),
+            margin: EdgeInsets.only(top: 3),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Style().textSizeColor('ค่าสินค้า', 14, Style().textColor),
-                    Style().textSizeColor('$amount ฿', 14, Style().textColor)
-                  ],
+                Container(
+                  child: Style()
+                      .textSizeColor('สรุปรายการ', 16, Style().textColor),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
+                Container(
+                    margin: EdgeInsets.all(1),
+                    child: Divider(
+                      color: Colors.grey,
+                      height: 0,
+                    )),
+                Column(
+                  children: appDataModel.currentOrder.map((e) {
+                    int index = appDataModel.currentOrder.indexOf(e);
+                    int pcs = int.parse(e.pcs);
+                    print('e = ' + e.productName);
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Style().textSizeColor('ค่าส่ง', 14, Style().textColor),
-                        Style().textSizeColor(" (" + distanceString + ' กม.)',
-                            10, Style().darkColor)
+                        Expanded(
+                            child: Column(
+                          children: [
+                            ListTile(
+                              title: (e.productName?.isEmpty ?? true)
+                                  ? Text('')
+                                  : Style().textFlexibleBackSize(
+                                      (index + 1).toString() +
+                                          ". " +
+                                          e.productName,
+                                      2,
+                                      14,
+                                    ),
+                              subtitle: (e.comment?.isEmpty ?? true)
+                                  ? null
+                                  : Style().textSizeColor(
+                                      e.comment, 12, Style().textColor),
+                            ),
+                            (discount > 0)
+                                ? Container()
+                                : Row(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(8),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            IconButton(
+                                              padding: EdgeInsets.zero,
+                                              constraints: BoxConstraints(),
+                                              icon: Icon(Icons.remove_circle,
+                                                  color: Colors.red, size: 20),
+                                              onPressed: () =>
+                                                  setState(() async {
+                                                if (pcs > 1) {
+                                                  final newValue = pcs - 1;
+                                                  appDataModel
+                                                          .currentOrder[index]
+                                                          .pcs =
+                                                      newValue
+                                                          .clamp(1, 50)
+                                                          .toString();
+                                                  await _onlyCalData(
+                                                          appDataModel)(
+                                                      context.read<
+                                                          AppDataModel>());
+                                                }
+                                              }),
+                                            ),
+                                            Container(
+                                              margin: EdgeInsets.only(
+                                                  left: 5, right: 5),
+                                              child: Style().textSizeColor(
+                                                  pcs.toString(),
+                                                  12,
+                                                  Style().textColor),
+                                            ),
+                                            IconButton(
+                                              padding: EdgeInsets.zero,
+                                              constraints: BoxConstraints(),
+                                              icon: Icon(
+                                                Icons.add_circle,
+                                                color: Colors.green,
+                                                size: 20,
+                                              ),
+                                              onPressed: () =>
+                                                  setState(() async {
+                                                final newValue = pcs + 1;
+                                                appDataModel.currentOrder[index]
+                                                        .pcs =
+                                                    newValue
+                                                        .clamp(1, 50)
+                                                        .toString();
+                                                await _onlyCalData(
+                                                        appDataModel)(
+                                                    context
+                                                        .read<AppDataModel>());
+                                              }),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                          ],
+                        )),
+                        Column(
+                          children: [
+                            Style().textSizeColor(
+                                (int.parse(e.price) * int.parse(e.pcs))
+                                        .toString() +
+                                    ' ฿',
+                                14,
+                                Style().textColor),
+                            Style().textSizeColor(
+                                e.price + ' ฿/จำนวน x ' + e.pcs,
+                                12,
+                                Style().darkColor)
+                          ],
+                        ),
+                        IconButton(
+                            onPressed: () async {
+                              var result = await Dialogs().confirm(
+                                  context, "ลบสินค้า", "ลบสิ้นค้าออกจาก Order");
+                              if (result == true) {
+                                appDataModel.currentOrder.removeAt(index);
+                                _onlyCalData(context.read<AppDataModel>());
+                              }
+                            },
+                            icon: Icon(
+                              Icons.delete,
+                              color: Colors.orange,
+                              size: 20,
+                            ))
                       ],
-                    ),
-                    Style()
-                        .textSizeColor('$costDelivery ฿', 14, Style().textColor)
-                  ],
+                    );
+                  }).toList(),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Style().textSizeColor('รวม', 16, Style().textColor),
-                    Style().textSizeColor(
-                        (amount + costDelivery).toString() + ' ฿',
-                        16,
-                        Style().darkColor)
-                  ],
-                ),
+                Container(
+                    margin: EdgeInsets.all(1),
+                    child: Divider(
+                      color: Colors.grey,
+                      height: 0,
+                    )),
+                Container(
+                  margin: EdgeInsets.only(top: 5),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Style().textSizeColor(
+                              'ค่าสินค้า', 14, Style().textColor),
+                          Style()
+                              .textSizeColor('$amount ฿', 14, Style().textColor)
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Style().textSizeColor(
+                                  'ค่าส่ง', 14, Style().textColor),
+                              Style().textSizeColor(
+                                  " (" + distanceString + ' กม.)',
+                                  10,
+                                  Style().darkColor)
+                            ],
+                          ),
+                          Style().textSizeColor(
+                              '$costDelivery ฿', 14, Style().textColor)
+                        ],
+                      ),
+                      InkWell(
+                        onTap: () async {
+                          var _codeResult = await Dialogs().inputDialog(
+                              context,
+                              Style().textBlackSize("โค้ดส่วนลด", 16),
+                              "กรอกโค้ดส่วนลด");
+                          if (_codeResult != null && _codeResult[0] == true) {
+                            _checkCode(
+                                _codeResult[1], context.read<AppDataModel>());
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Style().textBlackSize("$codeString ", 14),
+                                Icon(
+                                  FontAwesomeIcons.tags,
+                                  size: 15,
+                                  color: Colors.orange,
+                                )
+                              ],
+                            ),
+                            Style().textBlackSize("- ฿ $discount", 14)
+                          ],
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Style().textSizeColor('รวม', 16, Style().textColor),
+                          Style().textSizeColor(
+                              (amount + costDelivery - discount).toString() +
+                                  ' ฿',
+                              16,
+                              Style().darkColor)
+                        ],
+                      ),
+                    ],
+                  ),
+                )
               ],
             ),
-          )
-        ],
-      ),
-    );
+          );
   }
 
   Container buildAddressDetail(AppDataModel appDataModel) {
@@ -544,12 +670,39 @@ class OrderDetailState extends State<OrderDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Style().textSizeColor('จัดส่งที่', 16, Style().textColor),
           Row(
             children: [
-              Icon(
-                FontAwesomeIcons.mapMarkerAlt,
-                color: Style().darkColor,
+              Style().textSizeColor('จัดส่งที่', 16, Style().textColor),
+            ],
+          ),
+          Row(
+            children: [
+              Column(
+                children: [
+                  InkWell(
+                    onTap: () async {
+                      var result =
+                          await Navigator.pushNamed(context, "/googleMap-page");
+                      if (result != null) {
+                        List latlngNew = result;
+                        appDataModel.userLat = latlngNew[0];
+                        appDataModel.userLng = latlngNew[1];
+
+                        addressName = await getAddressName(
+                            appDataModel.userLat, appDataModel.userLng);
+                        _calData(context.read());
+                        setState(() {});
+                      }
+                    },
+                    child: Icon(
+                      FontAwesomeIcons.mapMarkerAlt,
+                      color: Style().darkColor,
+                    ),
+                  ),
+                  Container(
+                      margin: EdgeInsets.only(top: 5),
+                      child: Style().textBlackSize("เปลี่ยน", 10))
+                ],
               ),
               Expanded(
                   child: ListTile(
@@ -623,8 +776,9 @@ class OrderDetailState extends State<OrderDetailPage> {
       'comment': addressComment,
       'customerId': appDataModel.profileUid,
       'driver': '0',
-      'location':
-          appDataModel.latYou.toString() + ',' + appDataModel.lngYou.toString(),
+      'location': appDataModel.userLat.toString() +
+          ',' +
+          appDataModel.userLng.toString(),
       'orderId': orderId,
       'shopId': appDataModel.storeSelectId,
       'startTime': dateString,
@@ -633,6 +787,9 @@ class OrderDetailState extends State<OrderDetailPage> {
       'status': '1',
       'distance': appDataModel.distanceDelivery,
       'amount': (amount).toString(),
+      'amountOri': (amountOri).toString(),
+      "discount": discount.toString(),
+      "costDelivery4Rider": costDelivery4Rider.toString(),
       'costDelivery': (costDelivery).toString()
     }).then((value) async {
       int allTime = 0;
@@ -651,9 +808,27 @@ class OrderDetailState extends State<OrderDetailPage> {
           'comment': currentOrder[i].comment,
           'pcs': currentOrder[i].pcs,
           'price': currentOrder[i].price,
+          'oriPrice': currentOrder[i].oriPrice,
           'name': currentOrder[i].productName
         }).then((value) async {
           await addLog(orderId, '1', 'user', appDataModel.profileUid, '');
+          if (codeDiscountStatus) {
+            String _timeStamp = await getTimeStampNow();
+            CodeUseOneModel codeUseOneModel = CodeUseOneModel(
+                id: _timeStamp,
+                time: dateString,
+                orderId: orderId,
+                code: codeOneModel.code,
+                userId: appDataModel.profileUid,
+                disCountValue: discount.toString());
+            Map<String, dynamic> data = codeUseOneModel.toJson();
+
+            await dbAddData("addCodeUse", "codeUse", _timeStamp, data);
+
+            int _stockCode = (int.parse(codeOneModel.stock) - 1);
+            await dbUpdate("updateCodeStock", "code", codeString,
+                {"stock": _stockCode.toString()});
+          }
         });
       }
 
@@ -690,5 +865,95 @@ class OrderDetailState extends State<OrderDetailPage> {
             element.token, "มี Order ใหม่ Rider", "Order:" + orderId);
       });
     });
+  }
+
+  _checkCode(String code, AppDataModel appDataModel) async {
+    var _getcodeUse = await dbGetDataAll("getCodeUse", "codeUse");
+    var jsonData = setList2Json(_getcodeUse[1]);
+    print(jsonData);
+
+    var _getCode = await dbGetDataOne("orderGetCodeOne", 'code', code);
+    if (_getCode[0]) {
+      codeOneModel = codeOneModelFromJson(_getCode[1]);
+
+      if (int.parse(codeOneModel.stock) > 0) {
+        if (amount > int.parse(codeOneModel.buyValueStart)) {
+          int _userUseCode = 0;
+          int _userCodeLimit = int.parse(codeOneModel.useLimit);
+          await db
+              .collection("codeUse")
+              .where("code", isEqualTo: codeOneModel.code)
+              .where("userId", isEqualTo: appDataModel.userOneModel.uid)
+              .get()
+              .then((value) {
+            var jsonData = setList2Json(value);
+            List<CodeUseListModel> codeUseListModel =
+                codeUseListModelFromJson(jsonData);
+            _userUseCode = codeUseListModel.length;
+          });
+
+          print("_userUseCode $_userUseCode");
+          print("_userCodeLimit $_userCodeLimit");
+
+          if (_userUseCode < _userCodeLimit) {
+            if (codeOneModel.type == "ส่งฟรี") {
+              discount = costDelivery;
+
+              codeDiscountStatus = true;
+              codeString = codeOneModel.name;
+              setState(() {});
+            } else {
+              int _calDiscount =
+                  calPercen(amount, int.parse(codeOneModel.discount));
+              if (_calDiscount > int.parse(codeOneModel.valueLimit)) {
+                discount = int.parse(codeOneModel.valueLimit);
+              } else {
+                discount = _calDiscount;
+              }
+
+              codeDiscountStatus = true;
+              codeString = codeOneModel.name;
+              setState(() {});
+            }
+          } else {
+            Fluttertoast.showToast(
+                msg: "โค้ดถูกใช้งานครบแล้ว",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.CENTER,
+                timeInSecForIosWeb: 1,
+                backgroundColor: Colors.red,
+                textColor: Colors.white,
+                fontSize: 16.0);
+          }
+        } else {
+          Fluttertoast.showToast(
+              msg: "ยอดสั่งซื้อไม่ถึง " + codeOneModel.buyValueStart + "บาท",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
+      } else {
+        Fluttertoast.showToast(
+            msg: "โค้ดนี้ถูกใช้หมดแล้ว",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    } else {
+      Fluttertoast.showToast(
+          msg: "โค้ดไม่ถูกต้อง",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
   }
 }

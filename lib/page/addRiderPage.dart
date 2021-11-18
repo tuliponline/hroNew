@@ -55,6 +55,7 @@ class AddRiderState extends State<AddRiderPage> {
     lat = position.latitude;
     lng = position.longitude;
     addressName = await getAddressName(lat, lng);
+    location = "$lat$lng";
     setState(() {
       lat = position.latitude;
       lng = position.longitude;

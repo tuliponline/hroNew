@@ -13,12 +13,12 @@ if (flutterRoot == null) {
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '24'
+    flutterVersionCode = '30'
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '3.0'
+    flutterVersionName = '4.1.3'
 }
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.android.application'
@@ -32,7 +32,7 @@ apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
    }
 
    android {
-    compileSdkVersion 30
+    compileSdkVersion 31
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -42,10 +42,10 @@ apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "hroth.hro"
         minSdkVersion 20
-        targetSdkVersion 30
+        targetSdkVersion 31
         multiDexEnabled true
-        versionCode 24
-        versionName "3.0"
+        versionCode 30
+        versionName "4.1.3"
     }
 
     signingConfigs {

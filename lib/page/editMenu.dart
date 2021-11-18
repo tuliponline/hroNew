@@ -9,12 +9,16 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hro/model/AppDataModel.dart';
 import 'package:hro/model/productModel.dart';
+import 'package:hro/model/setupModel.dart';
 import 'package:hro/utility/Dialogs.dart';
+import 'package:hro/utility/calPercen.dart';
 import 'package:hro/utility/dialog.dart';
 import 'package:hro/utility/regexText.dart';
 import 'package:hro/utility/style.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+
+import 'fireBaseFunctions.dart';
 
 class EditMenuPage extends StatefulWidget {
   @override
@@ -42,6 +46,15 @@ class EditMenuState extends State<EditMenuPage> {
   ProductModel productModel;
   FirebaseFirestore db = FirebaseFirestore.instance;
 
+  ProductSetupModel productSetupData;
+
+  _getConfog() async {
+    var _configDb = await dbGetDataOne("getProductSetup", "setup", "product");
+    if (_configDb[0]) {
+      productSetupData = productSetupModelFromJson(_configDb[1]);
+    }
+  }
+
   _getProductData(AppDataModel appDataModel) async {
     await db
         .collection('products')
@@ -51,7 +64,7 @@ class EditMenuState extends State<EditMenuPage> {
       productModel = productModelFromJson(jsonEncode(value.data()));
       _nameFood.text = productModel.productName;
       _detailFood.text = productModel.productDetail;
-      _priceFood.text = productModel.productPrice.toString();
+      _priceFood.text = productModel.productOriPrice.toString();
 
       photoUrl = productModel.productPhotoUrl;
       timeFood = int.parse(productModel.productTime);
@@ -66,8 +79,9 @@ class EditMenuState extends State<EditMenuPage> {
 
   @override
   void initState() {
-    super.initState();
+    _getConfog();
     _getProductData(context.read<AppDataModel>());
+    super.initState();
   }
 
   @override
@@ -496,10 +510,15 @@ class EditMenuState extends State<EditMenuPage> {
             }
             CollectionReference products =
                 FirebaseFirestore.instance.collection('products');
+
+            int _calGpValue = await calPercen(
+                int.parse(_priceFood.text), int.parse(productSetupData.gp));
+            int _fullPrice = int.parse(_priceFood.text) + _calGpValue;
             await products.doc(productData.productId).update({
               'product_name': _nameFood.text,
               'product_detail': _detailFood.text,
-              'product_price': _priceFood.text,
+              'product_OriPrice': _priceFood.text,
+              'product_price': _fullPrice.toString(),
               'product_time': timeFood.toString(),
               'product_photoUrl': photoUrl
             }).then((value) {

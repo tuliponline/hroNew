@@ -4,9 +4,12 @@
 
 import 'dart:convert';
 
-List<ProductsModel> productsModelFromJson(String str) => List<ProductsModel>.from(json.decode(str).map((x) => ProductsModel.fromJson(x)));
+List<ProductsModel> productsModelFromJson(String str) =>
+    List<ProductsModel>.from(
+        json.decode(str).map((x) => ProductsModel.fromJson(x)));
 
-String productsModelToJson(List<ProductsModel> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+String productsModelToJson(List<ProductsModel> data) =>
+    json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 class ProductsModel {
   ProductsModel({
@@ -18,6 +21,7 @@ class ProductsModel {
     this.productStatus,
     this.productPrice,
     this.productName,
+    this.productOriPrice,
   });
 
   String productPhotoUrl;
@@ -28,26 +32,29 @@ class ProductsModel {
   String productStatus;
   String productPrice;
   String productName;
+  String productOriPrice;
 
   factory ProductsModel.fromJson(Map<String, dynamic> json) => ProductsModel(
-    productPhotoUrl: json["product_photoUrl"],
-    productTime: json["product_time"],
-    productDetail: json["product_detail"],
-    productId: json["product_id"],
-    shopUid: json["shop_uid"],
-    productStatus: json["product_status"],
-    productPrice: json["product_price"],
-    productName: json["product_name"],
-  );
+        productPhotoUrl: json["product_photoUrl"],
+        productTime: json["product_time"],
+        productDetail: json["product_detail"],
+        productId: json["product_id"],
+        shopUid: json["shop_uid"],
+        productStatus: json["product_status"],
+        productPrice: json["product_price"],
+        productName: json["product_name"],
+        productOriPrice: json["product_OriPrice"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "product_photoUrl": productPhotoUrl,
-    "product_time": productTime,
-    "product_detail": productDetail,
-    "product_id": productId,
-    "shop_uid": shopUid,
-    "product_status": productStatus,
-    "product_price": productPrice,
-    "product_name": productName,
-  };
+        "product_photoUrl": productPhotoUrl,
+        "product_time": productTime,
+        "product_detail": productDetail,
+        "product_id": productId,
+        "shop_uid": shopUid,
+        "product_status": productStatus,
+        "product_price": productPrice,
+        "product_name": productName,
+        "product_OriPrice": productOriPrice,
+      };
 }

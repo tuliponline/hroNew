@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -6,8 +7,11 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hro/model/AppDataModel.dart';
 import 'package:hro/model/UserOneModel.dart';
+import 'package:hro/model/contactmodel.dart';
+import 'package:hro/page/fireBaseFunctions.dart';
 import 'package:hro/utility/Dialogs.dart';
 import 'package:hro/utility/checkHaveShopAndRider.dart';
+import 'package:hro/utility/checkVersion.dart';
 import 'package:hro/utility/style.dart';
 import 'package:provider/provider.dart';
 
@@ -19,6 +23,7 @@ class UserPage extends StatefulWidget {
 }
 
 class UserState extends State<UserPage> {
+  FirebaseFirestore db = FirebaseFirestore.instance;
   Dialogs dialogs = Dialogs();
   final GoogleSignIn googleSignIn = GoogleSignIn();
 
@@ -31,7 +36,23 @@ class UserState extends State<UserPage> {
   bool showShopAndDriver = false;
   double screeW;
 
+  String appVersion;
+
+  ContactModel contactModel;
+
   _checkHaveShop(AppDataModel appDataModel) async {
+    var _contactDb = await dbGetDataOne("getContact", "contactUs", "001");
+    if (_contactDb[0]) {
+      contactModel = contactModelFromJson(_contactDb[1]);
+    }
+    appVersion = await checkAppVersion();
+
+    var _userDB =
+        await dbGetDataOne("getUser", "users", appDataModel.userOneModel.uid);
+    if (_userDB[0]) {
+      appDataModel.userOneModel = userOneModelFromJson(_userDB[1]);
+    }
+
     screeW = appDataModel.screenW;
     print("appDataModel.screenW = " + appDataModel.screenW.toString());
     loginPrivider = appDataModel.loginProvider;
@@ -46,10 +67,21 @@ class UserState extends State<UserPage> {
     setState(() {});
   }
 
+  _realTimeDB(AppDataModel appDataModel) async {
+    db
+        .collection("users")
+        .doc(appDataModel.userOneModel.uid)
+        .snapshots()
+        .listen((event) async {
+      _checkHaveShop(context.read<AppDataModel>());
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _checkHaveShop(context.read<AppDataModel>());
+    _realTimeDB(context.read<AppDataModel>());
   }
 
   @override
@@ -57,99 +89,112 @@ class UserState extends State<UserPage> {
     return Consumer<AppDataModel>(
         builder: (context, appDataModel, child) => Scaffold(
               backgroundColor: Colors.grey.shade100,
-              body: SafeArea(
-                child: Container(
-                  margin: EdgeInsets.all(10),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Container(
-                            margin: EdgeInsets.only(top: 10),
-                            padding: EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(10)),
-                              color: Colors.white,
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Style()
-                                        .textBlackSize('ร้านค้า และ Rider', 14),
-                                    IconButton(
-                                        onPressed: () {
-                                          if (showShopAndDriver) {
-                                            showShopAndDriver = false;
-                                          } else {
-                                            showShopAndDriver = true;
-                                          }
-                                          setState(() {});
-                                        },
-                                        icon: (showShopAndDriver
-                                            ? Icon(Icons.arrow_drop_up)
-                                            : Icon(Icons.arrow_drop_down)))
-                                  ],
-                                ),
-                                (showShopAndDriver)
-                                    ? Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
-                                        children: [
-                                          haveShop == false
-                                              ? topmenuShop()
-                                              : Container(),
-                                          haveRider == false
-                                              ? topmenuRider()
-                                              : Container()
-                                        ],
-                                      )
-                                    : Container()
-                              ],
-                            )),
-                        _showProfile(),
-                        // _showOrderMenu(),
-                        _showWallet(),
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+              body: (userOneModel == null)
+                  ? Style().loading()
+                  : SafeArea(
+                      child: Container(
+                        margin: EdgeInsets.all(10),
+                        child: SingleChildScrollView(
+                          child: Column(
                             children: [
-                              SizedBox(
-                                width: screenW * 0.9,
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    var resule = await dialogs.confirm(
-                                      context,
-                                      "ออกจากระบบ",
-                                      "ยืนยันการออกจากระบบ",
-                                    );
-                                    if (resule) {
-                                      await FirebaseAuth.instance.signOut();
-                                      await googleSignIn.signOut();
-                                      Navigator.pushNamedAndRemoveUntil(context,
-                                          '/first-page', (route) => false);
-                                    }
-                                  },
-                                  child: Style().textSizeColor(
-                                      "ออกจากระบบ", 16, Colors.white),
-                                  style: ButtonStyle(
-                                      backgroundColor:
-                                          MaterialStateProperty.all(Colors.red),
-                                      textStyle: MaterialStateProperty.all(
-                                          TextStyle(fontSize: 30))),
+                              Container(
+                                  margin: EdgeInsets.only(top: 10),
+                                  padding: EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10)),
+                                    color: Colors.white,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Style().textBlackSize(
+                                              'ร้านค้า และ Rider', 14),
+                                          IconButton(
+                                              onPressed: () {
+                                                if (showShopAndDriver) {
+                                                  showShopAndDriver = false;
+                                                } else {
+                                                  showShopAndDriver = true;
+                                                }
+                                                setState(() {});
+                                              },
+                                              icon: (showShopAndDriver
+                                                  ? Icon(Icons.arrow_drop_up)
+                                                  : Icon(
+                                                      Icons.arrow_drop_down)))
+                                        ],
+                                      ),
+                                      (showShopAndDriver)
+                                          ? Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceAround,
+                                              children: [
+                                                haveShop == false
+                                                    ? topmenuShop()
+                                                    : Container(),
+                                                haveRider == false
+                                                    ? topmenuRider()
+                                                    : Container()
+                                              ],
+                                            )
+                                          : Container()
+                                    ],
+                                  )),
+                              _showProfile(),
+                              // _showOrderMenu(),
+                              _showWallet(), _buildContactUs(),
+                              Container(
+                                margin: EdgeInsets.all(8),
+                                child: Style().textBlackSize(
+                                    "เวอร์ชั่นปัจจุบัน $appVersion", 14),
+                              ),
+                              Container(
+                                margin: EdgeInsets.only(top: 10),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: screenW * 0.9,
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          var resule = await dialogs.confirm(
+                                            context,
+                                            "ออกจากระบบ",
+                                            "ยืนยันการออกจากระบบ",
+                                          );
+                                          if (resule) {
+                                            await FirebaseAuth.instance
+                                                .signOut();
+                                            await googleSignIn.signOut();
+                                            Navigator.pushNamedAndRemoveUntil(
+                                                context,
+                                                '/first-page',
+                                                (route) => false);
+                                          }
+                                        },
+                                        child: Style().textSizeColor(
+                                            "ออกจากระบบ", 16, Colors.white),
+                                        style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.red),
+                                            textStyle:
+                                                MaterialStateProperty.all(
+                                                    TextStyle(fontSize: 30))),
+                                      ),
+                                    )
+                                  ],
                                 ),
                               )
                             ],
                           ),
-                        )
-                      ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
             ));
   }
 
@@ -338,26 +383,36 @@ class UserState extends State<UserPage> {
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      IconButton(
-                          onPressed: () {},
-                          icon: Icon(
-                            FontAwesomeIcons.moneyBillWave,
-                            color: Colors.orange,
-                            size: 20,
-                          )),
-                      Container(
-                          margin: EdgeInsets.only(left: 10),
-                          child: Style().textBlackSize("เครดิต", 14))
-                    ],
-                  ),
-                  Style().textBlackSize(userOneModel.credit + " ฿", 16)
-                ],
+              InkWell(
+                onTap: () {
+                  Navigator.pushNamed(context, "/creditTransection-page");
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        IconButton(
+                            onPressed: () {},
+                            icon: Icon(
+                              FontAwesomeIcons.wallet,
+                              color: Colors.orange,
+                              size: 20,
+                            )),
+                        Container(
+                            margin: EdgeInsets.only(left: 10),
+                            child: Style().textBlackSize("เครดิต", 14))
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Style().textBlackSize("฿ " + userOneModel.credit, 16),
+                        Icon(Icons.navigate_next)
+                      ],
+                    )
+                  ],
+                ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -432,6 +487,54 @@ class UserState extends State<UserPage> {
                       Icon(Icons.motorcycle, size: 20, color: Colors.white),
                       Style().textSizeColor("สมัคร Rider", 14, Colors.white)
                     ])),
+          );
+  }
+
+  _buildContactUs() {
+    return (contactModel == null)
+        ? Container()
+        : Container(
+            margin: EdgeInsets.only(top: 5),
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              color: Colors.white,
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [Style().textBlackSize("ติดต่อเรา", 16)],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Column(
+                      children: [
+                        Icon(
+                          FontAwesomeIcons.phoneSquare,
+                          color: Colors.blue,
+                        ),
+                        (contactModel.phone == "0")
+                            ? Text("")
+                            : Style().textBlackSize(contactModel.phone, 14)
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        Icon(
+                          FontAwesomeIcons.line,
+                          color: Colors.green,
+                        ),
+                        (contactModel.line == "0")
+                            ? Text("")
+                            : Style().textBlackSize(contactModel.line, 14)
+                      ],
+                    ),
+                  ],
+                )
+              ],
+            ),
           );
   }
 }

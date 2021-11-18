@@ -9,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hro/model/AppDataModel.dart';
 import 'package:hro/model/locationSetupModel.dart';
 import 'package:hro/model/shopModel.dart';
+import 'package:hro/page/googleMapPage.dart';
 import 'package:hro/utility/Dialogs.dart';
 import 'package:hro/utility/checkLocation.dart';
 import 'package:hro/utility/dialog.dart';
@@ -17,6 +18,7 @@ import 'package:hro/utility/notifySend.dart';
 import 'package:hro/utility/style.dart';
 import 'package:hro/utility/updateToken.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:location_permissions/location_permissions.dart';
 import 'package:provider/provider.dart';
 import 'package:time_range_picker/time_range_picker.dart';
 
@@ -72,28 +74,18 @@ class AddShopState extends State<AddShopPage> {
   double lat, lng;
   String addressName;
 
-  Future<Null> _getLocation(AppDataModel appDataModel) async {
+  bool loading = false;
+  Position position;
+
+  Future<Null> _getLocationSetup(AppDataModel appDataModel) async {
     locationSetupModel = appDataModel.locationSetupModel;
     _distanceService = locationSetupModel.distanceMax;
-
-    Position position = await checkLocationPosition();
-    lat = position.latitude;
-    lng = position.longitude;
-
-    addressName = await getAddressName(lat, lng);
-    shopLocation = '$lat,$lng';
-    print('address = $addressName');
-    setState(() {
-      lat = position.latitude;
-      lng = position.longitude;
-      print('location = $lat,$lng');
-    });
   }
 
   @override
   void initState() {
     super.initState();
-    _getLocation(context.read<AppDataModel>());
+    _getLocationSetup(context.read<AppDataModel>());
   }
 
   @override
@@ -155,11 +147,11 @@ class AddShopState extends State<AddShopPage> {
                   )
                 ],
               ),
-              body: Container(
-                child: Center(
-                  child: (lat == null || adding == true)
-                      ? Style().loading()
-                      : ListView(
+              body: (loading == true)
+                  ? Center(child: Style().loading())
+                  : Container(
+                      child: Center(
+                        child: ListView(
                           children: [
                             Column(
                               children: [
@@ -216,8 +208,8 @@ class AddShopState extends State<AddShopPage> {
                             ),
                           ],
                         ),
-                ),
-              ),
+                      ),
+                    ),
             ));
   }
 
@@ -492,51 +484,99 @@ class AddShopState extends State<AddShopPage> {
                   height: 0,
                 )),
             Container(
-              margin: EdgeInsets.only(top: 10, bottom: 5),
-              child:
-                  Style().textSizeColor('ตำแหน่งร้าน', 14, Style().textColor),
-            ),
-            (addressName == null)
-                ? Container()
-                : Container(
-                    margin: EdgeInsets.only(left: 20, right: 20, bottom: 5),
-                    child: Style()
-                        .textSizeColor(addressName, 12, Style().textColor),
+              margin: EdgeInsets.only(left: 0, top: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Style().textBlackSize("ตำแหน่งร้านค้า", 14),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        color: Style().darkColor,
+                        size: 14,
+                      ),
+                      (addressName == null)
+                          ? Style().textBlackSize("ระบุตำแหน่งร้านค้า", 14)
+                          : Container(
+                              width: appDataModel.screenW * 0.7,
+                              child: Style().textBlackSize(addressName, 12)),
+                      InkWell(
+                        onTap: () async {
+                          loading = true;
+                          setState(() {});
+
+                          var _locationService = await checkLocationService();
+                          if (_locationService == true) {
+                            var _locationSPermission =
+                                await checkLocationSPermission();
+                            print("_locationSPermission $_locationSPermission");
+
+                            if (_locationSPermission == true) {
+                              if (position == null) {
+                                position = await checkLocationPosition();
+                                lat = position.latitude;
+                                lng = position.longitude;
+                              }
+                              appDataModel.userLat = lat;
+                              appDataModel.userLng = lng;
+
+                              var result = await Navigator.pushNamed(
+                                  context, "/googleMap-page");
+                              loading = false;
+                              if (result != null) {
+                                List locationResuleNew = result;
+
+                                lat = locationResuleNew[0];
+                                lng = locationResuleNew[1];
+
+                                addressName = await getAddressName(lat, lng);
+                                shopLocation = '$lat,$lng';
+                              }
+                              setState(() {});
+                            } else {
+                              Dialogs().information(
+                                  context,
+                                  Style().textBlackSize(
+                                      "ไม่สามารเข้าถึงตำแหน่ง", 16),
+                                  Style().textBlackSize(
+                                      "โปรดตรวจสอบการตั้งค่า", 14));
+                            }
+                          } else {
+                            Dialogs().information(
+                                context,
+                                Style()
+                                    .textBlackSize("บริการตำแหน่งปิดอยู่", 16),
+                                Style().textBlackSize(
+                                    "โปรดตรวจสอบการตั้งค่า", 14));
+                          }
+
+                          // appDataModel.userLat = lat;
+                          // appDataModel.userLng = lng;
+
+                          // var result = await Navigator.pushNamed(
+                          //     context, "/googleMap-page");
+                          // if (result != null) {
+                          //   List latlngNew = result;
+                          //   lat = latlngNew[0];
+                          //   lng = latlngNew[1];
+
+                          //   addressName = await getAddressName(lat, lng);
+
+                          //   setState(() {});
+                          // }
+                        },
+                        child: Icon(
+                          Icons.keyboard_arrow_down_sharp,
+                          color: Style().darkColor,
+                        ),
+                      ),
+                    ],
                   ),
-            (lat == null || lng == null)
-                ? Center(
-                    child: Style().circularProgressIndicator(Style().darkColor),
-                  )
-                : showMap(),
+                ],
+              ),
+            )
           ],
-        ));
-  }
-
-  Set<Marker> youMarker() {
-    return <Marker>[
-      Marker(
-          markerId: MarkerId('youMarker'),
-          position: LatLng(lat, lng),
-          infoWindow: InfoWindow(title: 'ตำแหน่งร้าน', snippet: addressName))
-    ].toSet();
-  }
-
-  Container showMap() {
-    LatLng firstLocation = LatLng(lat, lng);
-    CameraPosition cameraPosition = CameraPosition(
-      target: firstLocation,
-      zoom: 16.0,
-    );
-
-    return Container(
-        margin: EdgeInsets.only(left: 20, right: 20, bottom: 10),
-        height: 200,
-        child: GoogleMap(
-          // myLocationEnabled: true,
-          initialCameraPosition: cameraPosition,
-          mapType: MapType.normal,
-          onMapCreated: (controller) {},
-          markers: youMarker(),
         ));
   }
 

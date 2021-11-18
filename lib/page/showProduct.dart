@@ -360,8 +360,10 @@ class ShowProductState extends State<ShowProductPage> {
             productName: productModel.productName,
             pcs: pcs.toString(),
             price: productModel.productPrice,
+            oriPrice: productModel.productOriPrice,
             comment: _comment.text,
-            time: productModel.productTime);
+            time: productModel.productTime,
+            shopId: shopModel.shopUid);
         var roeData = jsonEncode(newItem);
         print(roeData);
         appDataModel.currentOrder.add(newItem);
@@ -373,8 +375,10 @@ class ShowProductState extends State<ShowProductPage> {
           productName: productModel.productName,
           pcs: pcs.toString(),
           price: productModel.productPrice,
+          oriPrice: productModel.productOriPrice,
           comment: _comment.text,
-          time: productModel.productTime);
+          time: productModel.productTime,
+          shopId: shopModel.shopUid);
       var roeData = jsonEncode(newItem);
       print(roeData);
 
