@@ -13,12 +13,12 @@ if (flutterRoot == null) {
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '30'
+    flutterVersionCode = '31'
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '4.1.3'
+    flutterVersionName = '4.1.4'
 }
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.android.application'
@@ -44,8 +44,8 @@ apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
         minSdkVersion 20
         targetSdkVersion 31
         multiDexEnabled true
-        versionCode 30
-        versionName "4.1.3"
+        versionCode 31
+        versionName "4.1.4"
     }
 
     signingConfigs {

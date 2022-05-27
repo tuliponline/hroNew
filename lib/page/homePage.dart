@@ -816,7 +816,8 @@ class HomeState extends State<HomePage> {
                 ),
                 InkWell(
                   onTap: () {
-                    _serviceSelect(context.read<AppDataModel>(), "4");
+                    // _serviceSelect(context.read<AppDataModel>(), "4");
+                    Navigator.pushNamed(context,  "/audio-page");
                   },
                   child: Container(
                     width: screenW * blogSize,
@@ -986,13 +987,32 @@ class HomeState extends State<HomePage> {
                     return InkWell(
                       onTap: () async {
                         if (appDataModel.loginStatus == true) {
-                          appDataModel.productSelectId =
-                              ranProductModel[index].productId;
-                          await Navigator.pushNamed(
-                              context, "/showProduct-page");
                           if (appDataModel.currentOrder != null &&
-                              appDataModel.currentOrder.length > 0)
+                              appDataModel.currentOrder.length > 0 &&
+                              ranProductModel[index].shopUid !=
+                                  appDataModel.currentOrder[0].shopId) {
+                            var _result = await showOkCancelAlertDialog(
+                                context: context,
+                                title: "มีสินค้าในตะกร้า",
+                                message: "สินค้าจะถูกลบออกจากตะกร้า");
+
+                            if (_result) {
+                              appDataModel.currentOrder = [];
+                              appDataModel.productSelectId =
+                                  ranProductModel[index].productId;
+                              await Navigator.pushNamed(
+                                  context, "/showProduct-page");
+
+                              setState(() {});
+                            }
+                          } else {
+                            appDataModel.productSelectId =
+                                ranProductModel[index].productId;
+                            await Navigator.pushNamed(
+                                context, "/showProduct-page");
+
                             setState(() {});
+                          }
                         } else {
                           Navigator.pop(context);
                         }
@@ -1178,16 +1198,32 @@ class HomeState extends State<HomePage> {
                     return InkWell(
                       onTap: () async {
                         if (appDataModel.loginStatus == true) {
-                          print("goto StorePage");
-                          appDataModel.storeSelectId =
-                              ranShopModel[index].shopUid;
-                          // appDataModel.currentOrder = [];
-
-                          await Navigator.pushNamed(context, '/store-Page');
-                          await _reRandomData(context.read<AppDataModel>());
                           if (appDataModel.currentOrder != null &&
-                              appDataModel.currentOrder.length > 0)
+                              appDataModel.currentOrder.length > 0 &&
+                              ranShopModel[index].shopUid !=
+                                  appDataModel.currentOrder[0].shopId) {
+                            var _result = await showOkCancelAlertDialog(
+                                context: context,
+                                title: "มีสินค้าในตะกร้า",
+                                message: "สินค้าจะถูกลบออกจากตะกร้า");
+
+                            if (_result) {
+                              appDataModel.currentOrder = [];
+                              appDataModel.storeSelectId =
+                                  ranShopModel[index].shopUid;
+                              await Navigator.pushNamed(context, '/store-Page');
+                              await _reRandomData(context.read<AppDataModel>());
+
+                              setState(() {});
+                            }
+                          } else {
+                            appDataModel.storeSelectId =
+                                ranShopModel[index].shopUid;
+                            await Navigator.pushNamed(context, '/store-Page');
+                            await _reRandomData(context.read<AppDataModel>());
+
                             setState(() {});
+                          }
                         } else {
                           Navigator.pop(context);
                         }
@@ -1425,17 +1461,19 @@ class HomeState extends State<HomePage> {
         if (martSetupData != null && martSetupData.status == "1") {
           if (appDataModel.currentOrder != null &&
               appDataModel.currentOrder.length > 0) {
-            var _result = await showOkAlertDialog(
-                title: "สินค้าในตะกร้าจะถูกล้าง", message: "");
-            print(_result);
+            var _result = await showOkCancelAlertDialog(
+                context: context,
+                title: "มีสินค้าในตะกร้า",
+                message: "สินค้าจะถูกลบออกจากตะกร้า");
 
-            // var _confirm = await Dialogs()
-            //     .confirm(context, "มีสินค้าในตะกร้า", "สินค้าในตะกล้าจะถูกลบ");
-            // if (_confirm != null && _confirm) {
-            //   appDataModel.currentOrder = [];
-            //   await Navigator.pushNamed(context, "/martService-page");
-            //   setState(() {});
-            // }
+            if (_result) {
+              appDataModel.currentOrder = [];
+              await Navigator.pushNamed(context, "/martService-page");
+              setState(() {});
+            }
+          } else {
+            await Navigator.pushNamed(context, "/martService-page");
+            setState(() {});
           }
         } else {
           Dialogs().information(
@@ -1448,13 +1486,19 @@ class HomeState extends State<HomePage> {
         if (gasSetupData != null && gasSetupData.status == "1") {
           if (appDataModel.currentOrder != null &&
               appDataModel.currentOrder.length > 0) {
-            var _confirm = await Dialogs()
-                .confirm(context, "มีสินค้าในตะกร้า", "สินค้าในตะกล้าจะถูกลบ");
-            if (_confirm != null && _confirm) {
+            var _result = await showOkCancelAlertDialog(
+                context: context,
+                title: "มีสินค้าในตะกร้า",
+                message: "สินค้าจะถูกลบออกจากตะกร้า");
+
+            if (_result) {
               appDataModel.currentOrder = [];
               await Navigator.pushNamed(context, "/gasService-page");
               setState(() {});
             }
+          } else {
+            await Navigator.pushNamed(context, "/gasService-page");
+            setState(() {});
           }
         } else {
           Dialogs().information(

@@ -293,7 +293,7 @@ class _ChatPageState extends State<ChatPage> {
                         user: _user,
                         emptyState: Center(
                             child: Style().textSizeColor(
-                                "เริ่มแชตเลย", 16, Style().darkColor)),
+                                "เริ่มแชทเลย", 16, Style().darkColor)),
                       ),
               ),
             ));

@@ -8,6 +8,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hro/model/AppDataModel.dart';
 import 'package:hro/model/allShopModel.dart';
 import 'package:hro/model/productsModel.dart';
+import 'package:hro/utility/newDialog.dart';
 import 'package:hro/utility/ranDomData.dart';
 import 'package:hro/utility/snapshot2list.dart';
 import 'package:hro/utility/style.dart';
@@ -189,9 +190,27 @@ class AllProductState extends State<AllProductsPage> {
                   (e.productStatus == "0")
                       ? Container()
                       : InkWell(
-                          onTap: () {
-                            appDataModel.productSelectId = e.productId;
-                            Navigator.pushNamed(context, "/showProduct-page");
+                          onTap: () async {
+                            if (appDataModel.currentOrder != null &&
+                                appDataModel.currentOrder.length > 0 &&
+                                e.shopUid !=
+                                    appDataModel.currentOrder[0].shopId) {
+                              var _result = await showOkCancelAlertDialog(
+                                  context: context,
+                                  title: "มีสินค้าในตะกร้า",
+                                  message: "สินค้าจะถูกลบออกจากตะกร้า");
+
+                              if (_result) {
+                                appDataModel.currentOrder = [];
+                                appDataModel.productSelectId = e.productId;
+                                await Navigator.pushNamed(
+                                    context, "/showProduct-page");
+                                setState(() {});
+                              }
+                            } else {
+                              appDataModel.productSelectId = e.productId;
+                              Navigator.pushNamed(context, "/showProduct-page");
+                            }
                           },
                           child: Container(
                             color: Colors.white,
@@ -282,8 +301,26 @@ class AllProductState extends State<AllProductsPage> {
               for (int i = 0; i < _shopsData.length; i++)
                 InkWell(
                   onTap: () async {
-                    appDataModel.storeSelectId = _shopsData[i].shopUid;
-                    await Navigator.pushNamed(context, '/store-Page');
+                    if (appDataModel.currentOrder != null &&
+                        appDataModel.currentOrder.length > 0 &&
+                        _shopsData[i].shopUid !=
+                            appDataModel.currentOrder[0].shopId) {
+                      var _result = await showOkCancelAlertDialog(
+                          context: context,
+                          title: "มีสินค้าในตะกร้า",
+                          message: "สินค้าจะถูกลบออกจากตะกร้า");
+
+                      if (_result) {
+                        appDataModel.currentOrder = [];
+                        appDataModel.storeSelectId = _shopsData[i].shopUid;
+                        await Navigator.pushNamed(context, '/store-Page');
+                        setState(() {});
+                      }
+                    } else {
+                      appDataModel.storeSelectId = _shopsData[i].shopUid;
+                      await Navigator.pushNamed(context, '/store-Page');
+                    }
+
                     // appDataModel.currentOrder = [];
                     //appDataModel.currentOrder.clear();
                   },

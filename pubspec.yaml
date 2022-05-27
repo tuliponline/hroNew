@@ -78,6 +78,7 @@ dependencies:
   places_service: ^0.1.0+2
   adaptive_dialog: ^1.2.0
   fluttertoast: ^8.0.8
+  chewie_audio: ^1.2.0
 
 
 

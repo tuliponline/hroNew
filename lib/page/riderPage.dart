@@ -423,402 +423,217 @@ class RiderState extends State<RiderPage> {
               color: Colors.white,
             ),
             margin: EdgeInsets.only(top: 2, left: 8, right: 8),
-            child: Row(
+            child: Column(
               children: [
-                (e.orderType == "mart")
-                    ? FutureBuilder<List<MartListDetailModel>>(
-                        future: _getMartDetail(e.orderId),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            List<MartListDetailModel> _martDetailListData =
-                                snapshot.data;
-                            return _buildOrderMartAddress(
-                                context.read<AppDataModel>(),
-                                _orderDetail,
-                                _martDetailListData);
-                          }
-
-                          return Style().loading();
-                        })
-                    : _buildOrderAddress(
-                        context.read<AppDataModel>(), _orderDetail),
-                Column(
+                Row(
                   children: [
-                    Container(
-                      margin: EdgeInsets.only(right: 8, top: 8, bottom: 8),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: appDataModel.screenW * 0.35,
-                            margin: EdgeInsets.only(right: 10),
-                            child: Column(
-                              children: [
-                                (e.status == "0" ||
-                                        e.status == "1" ||
-                                        e.status == "6")
-                                    ? Container()
-                                    : InkWell(
-                                        onTap: () {
-                                          appDataModel.orderDetailSelect =
-                                              orderDetailFromJson(
-                                                  jsonEncode(e));
-                                          appDataModel.userTypeSelect = "rider";
-                                          appDataModel.orderIdSelected =
-                                              e.orderId;
-                                          Navigator.pushNamed(
-                                              context, "/chat-page");
-                                        },
-                                        child: Container(
-                                          margin: EdgeInsets.only(top: 5),
-                                          padding: EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(5),
-                                          ),
-                                        ),
-                                      ),
-                                Container(
-                                  margin: EdgeInsets.only(top: 5),
-                                  padding: EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(5),
-                                      color: Colors.grey.shade300),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      (e.payType == "cash")
-                                          ? Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceAround,
-                                              children: [
-                                                Icon(FontAwesomeIcons.moneyBill,
-                                                    size: 15,
-                                                    color: Colors.red),
-                                                Style().textBlackSize(
-                                                    "   เงินสด", 14),
-                                              ],
-                                            )
-                                          : Row(
-                                              children: [
-                                                Icon(FontAwesomeIcons.wallet,
-                                                    size: 15,
-                                                    color: Colors.orange),
-                                                Style().textBlackSize(
-                                                    "   เครดิต", 14),
-                                              ],
+                    (e.orderType == "mart")
+                        ? FutureBuilder<List<MartListDetailModel>>(
+                            future: _getMartDetail(e.orderId),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                List<MartListDetailModel> _martDetailListData =
+                                    snapshot.data;
+                                return _buildOrderMartAddress(
+                                    context.read<AppDataModel>(),
+                                    _orderDetail,
+                                    _martDetailListData);
+                              }
+
+                              return Style().loading();
+                            })
+                        : _buildOrderAddress(
+                            context.read<AppDataModel>(), _orderDetail),
+                    Column(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.only(right: 8, top: 8, bottom: 8),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: appDataModel.screenW * 0.35,
+                                margin: EdgeInsets.only(right: 10),
+                                child: Column(
+                                  children: [
+                                    (e.status == "0" ||
+                                            e.status == "1" ||
+                                            e.status == "6")
+                                        ? Container()
+                                        : InkWell(
+                                            onTap: () {
+                                              appDataModel.orderDetailSelect =
+                                                  orderDetailFromJson(
+                                                      jsonEncode(e));
+                                              appDataModel.userTypeSelect =
+                                                  "rider";
+                                              appDataModel.orderIdSelected =
+                                                  e.orderId;
+                                              Navigator.pushNamed(
+                                                  context, "/chat-page");
+                                            },
+                                            child: Container(
+                                              margin: EdgeInsets.only(top: 5),
+                                              padding: EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                              ),
                                             ),
-                                      Style().textBlackSize(
-                                          (_customerpay).toString() + " ฿", 14),
-                                    ],
-                                  ),
-                                ),
-                                (e.costDelivery4Rider == null)
-                                    ? Container()
-                                    : Container(
-                                        margin: EdgeInsets.only(top: 5),
-                                        padding: EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(5),
-                                            color: Colors.grey.shade300),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
+                                          ),
+                                    Container(
+                                      margin: EdgeInsets.only(top: 5),
+                                      padding: EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                          color: Colors.grey.shade300),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          (e.payType == "cash")
+                                              ? Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceAround,
+                                                  children: [
+                                                    Icon(
+                                                        FontAwesomeIcons
+                                                            .moneyBill,
+                                                        size: 15,
+                                                        color: Colors.red),
+                                                    Style().textBlackSize(
+                                                        "   เงินสด", 14),
+                                                  ],
+                                                )
+                                              : Row(
+                                                  children: [
+                                                    Icon(
+                                                        FontAwesomeIcons.wallet,
+                                                        size: 15,
+                                                        color: Colors.orange),
+                                                    Style().textBlackSize(
+                                                        "   เครดิต", 14),
+                                                  ],
+                                                ),
+                                          Style().textBlackSize(
+                                              (_customerpay).toString() + " ฿",
+                                              14),
+                                        ],
+                                      ),
+                                    ),
+                                    (e.costDelivery4Rider == null)
+                                        ? Container()
+                                        : Container(
+                                            margin: EdgeInsets.only(top: 5),
+                                            padding: EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                                color: Colors.grey.shade300),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
-                                                Icon(
-                                                  FontAwesomeIcons
-                                                      .handHoldingUsd,
-                                                  size: 15,
-                                                  color: Colors.green.shade600,
+                                                Row(
+                                                  children: [
+                                                    Icon(
+                                                      FontAwesomeIcons
+                                                          .handHoldingUsd,
+                                                      size: 15,
+                                                      color:
+                                                          Colors.green.shade600,
+                                                    ),
+                                                    Style().textSizeColor(
+                                                        "   รายได้ ",
+                                                        16,
+                                                        Colors.green.shade600),
+                                                  ],
                                                 ),
                                                 Style().textSizeColor(
-                                                    "   รายได้ ",
-                                                    16,
-                                                    Colors.green.shade600),
+                                                    e.costDelivery4Rider + " ฿",
+                                                    14,
+                                                    Colors.green.shade600)
                                               ],
                                             ),
-                                            Style().textSizeColor(
-                                                e.costDelivery4Rider + " ฿",
-                                                14,
-                                                Colors.green.shade600)
-                                          ],
-                                        ),
-                                      ),
-                                (e.orderType == "hotShop")
-                                    ? Container()
-                                    : Container(
-                                        margin:
-                                            EdgeInsets.only(top: 5, bottom: 0),
-                                        padding: EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(5),
-                                            color: Colors.grey.shade300),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Style().textBlackSize(
-                                                "$statusStr", 12),
-                                          ],
-                                        ),
-                                      ),
-                              ],
-                            ),
-                          ),
-                          (e.orderType == "hotShop")
-                              ? Container(
-                                  width: appDataModel.screenW * 0.35,
-                                  child: Style().textFlexibleColorSize(
-                                      '*เตรียมค่าสินค้า ' + e.amount + " ฿",
-                                      2,
-                                      14,
-                                      Colors.red),
-                                )
-                              : Container(),
-                          Column(
-                            children: [
-                              (e.status == '2')
-                                  ? Container(
-                                      margin: EdgeInsets.only(
-                                        right: 8,
-                                      ),
-                                      width: appDataModel.screenW * 0.35,
-                                      child: ElevatedButton(
-                                        onPressed: () async {
-                                          var result = await Dialogs().confirm(
-                                            context,
-                                            "รับสินค้า หรือ ซื้อสินค้า",
-                                            "รับสินค้า หรือ ซื้อสินค้าครบแล้ว",
-                                          );
-                                          print('Delivering');
-                                          if (result == true) {
-                                            await _delivering(
-                                                context.read<AppDataModel>(),
-                                                e.orderId,
-                                                e.customerId);
-                                          }
-                                        },
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            (e.orderType == null ||
-                                                    e.orderType == "narmal")
-                                                ? Style().textSizeColor(
-                                                    'รับสินค้า',
-                                                    12,
-                                                    Colors.white)
-                                                : (e.orderType == "hotShop")
-                                                    ? Style().textSizeColor(
-                                                        'สั่งสินค้าหน้าร้าน',
-                                                        12,
-                                                        Colors.white)
-                                                    : Style().textSizeColor(
-                                                        'ซื้อสินค้าครบแล้ว',
-                                                        12,
-                                                        Colors.white)
-                                          ],
-                                        ),
-                                        style: ElevatedButton.styleFrom(
-                                            primary: Style().okColor,
-                                            shape: RoundedRectangleBorder(
+                                          ),
+                                    (e.orderType == "hotShop")
+                                        ? Container()
+                                        : Container(
+                                            margin: EdgeInsets.only(
+                                                top: 5, bottom: 0),
+                                            padding: EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
                                                 borderRadius:
-                                                    BorderRadius.circular(5))),
-                                      ),
-                                    )
-                                  : Container(
+                                                    BorderRadius.circular(5),
+                                                color: Colors.grey.shade300),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Style().textBlackSize(
+                                                    "$statusStr", 12),
+                                              ],
+                                            ),
+                                          ),
+                                  ],
+                                ),
+                              ),
+                              (e.orderType == "hotShop")
+                                  ? Container(
                                       width: appDataModel.screenW * 0.35,
-                                      margin: EdgeInsets.only(right: 5),
-                                      child: Column(
-                                        children: [
-                                          ElevatedButton(
+                                      child: Style().textFlexibleColorSize(
+                                          '*เตรียมค่าสินค้า ' + e.amount + " ฿",
+                                          2,
+                                          14,
+                                          Colors.red),
+                                    )
+                                  : Container(),
+                              Column(
+                                children: [
+                                  (e.status == '2')
+                                      ? Container(
+                                          margin: EdgeInsets.only(
+                                            right: 8,
+                                          ),
+                                          width: appDataModel.screenW * 0.35,
+                                          child: ElevatedButton(
                                             onPressed: () async {
-                                              if (e.orderType == "mart") {
-                                                if (martSetupModel
-                                                        .shareForApp !=
-                                                    "0") {
-                                                  int orderAmount = int.parse(
-                                                          e.amount) +
-                                                      int.parse(e.costDelivery);
-                                                  int riderCredit = int.parse(
-                                                      appDataModel
-                                                          .userOneModel.credit);
-                                                  if (riderCredit >
-                                                      orderAmount) {
-                                                    print('confirm');
-                                                    var result =
-                                                        await Dialogs().confirm(
-                                                      context,
-                                                      "รับ Order ?",
-                                                      "ยืนยันรับ Order " +
-                                                          e.orderId,
-                                                    );
-                                                    print("Resulr = $result");
-                                                    if (result == true) {
-                                                      _confirmOrder(
-                                                          context.read<
-                                                              AppDataModel>(),
-                                                          e);
-                                                    }
-                                                  } else {
-                                                    Fluttertoast.showToast(
-                                                        msg:
-                                                            "เครดิตไม่พอสำหรับรับงานนี้",
-                                                        toastLength:
-                                                            Toast.LENGTH_SHORT,
-                                                        gravity:
-                                                            ToastGravity.CENTER,
-                                                        timeInSecForIosWeb: 1,
-                                                        backgroundColor:
-                                                            Colors.red,
-                                                        textColor: Colors.white,
-                                                        fontSize: 16.0);
-                                                  }
-                                                } else {
-                                                  print('confirm');
-                                                  var result =
-                                                      await Dialogs().confirm(
-                                                    context,
-                                                    "รับ Order ?",
-                                                    "ยืนยันรับ Order " +
-                                                        e.orderId,
-                                                  );
-                                                  print("Resulr = $result");
-                                                  if (result == true) {
-                                                    _confirmOrder(
-                                                        context.read<
-                                                            AppDataModel>(),
-                                                        e);
-                                                  }
-                                                }
-                                              } else if (e.orderType == "gas") {
-                                                if (gasSetupModel.shareForApp !=
-                                                    "0") {
-                                                  int orderAmount = int.parse(
-                                                          e.amount) +
-                                                      int.parse(e.costDelivery);
-                                                  int riderCredit = int.parse(
-                                                      appDataModel
-                                                          .userOneModel.credit);
-                                                  if (riderCredit >
-                                                      orderAmount) {
-                                                    print('confirm');
-                                                    var result =
-                                                        await Dialogs().confirm(
-                                                      context,
-                                                      "รับ Order ?",
-                                                      "ยืนยันรับ Order " +
-                                                          e.orderId,
-                                                    );
-                                                    print("Resulr = $result");
-                                                    if (result == true) {
-                                                      _confirmOrder(
-                                                          context.read<
-                                                              AppDataModel>(),
-                                                          e);
-                                                    }
-                                                  } else {
-                                                    Fluttertoast.showToast(
-                                                        msg:
-                                                            "เครดิตไม่พอสำหรับรับงานนี้",
-                                                        toastLength:
-                                                            Toast.LENGTH_SHORT,
-                                                        gravity:
-                                                            ToastGravity.CENTER,
-                                                        timeInSecForIosWeb: 1,
-                                                        backgroundColor:
-                                                            Colors.red,
-                                                        textColor: Colors.white,
-                                                        fontSize: 16.0);
-                                                  }
-                                                } else {
-                                                  print('confirm');
-                                                  var result =
-                                                      await Dialogs().confirm(
-                                                    context,
-                                                    "รับ Order ?",
-                                                    "ยืนยันรับ Order " +
-                                                        e.orderId,
-                                                  );
-                                                  print("Resulr = $result");
-                                                  if (result == true) {
-                                                    _confirmOrder(
-                                                        context.read<
-                                                            AppDataModel>(),
-                                                        e);
-                                                  }
-                                                }
-                                              } else {
-                                                if (productSetupModel
-                                                        .shareForApp !=
-                                                    "0") {
-                                                  int orderAmount =
-                                                      int.parse(e.amount);
-                                                  int riderCredit = int.parse(
-                                                      appDataModel
-                                                          .userOneModel.credit);
-                                                  if (riderCredit >
-                                                      orderAmount) {
-                                                    print('confirm');
-                                                    var result =
-                                                        await Dialogs().confirm(
-                                                      context,
-                                                      "รับ Order ?",
-                                                      "ยืนยันรับ Order " +
-                                                          e.orderId,
-                                                    );
-                                                    print("Resulr = $result");
-                                                    if (result == true) {
-                                                      _confirmOrder(
-                                                          context.read<
-                                                              AppDataModel>(),
-                                                          e);
-                                                    }
-                                                  } else {
-                                                    Fluttertoast.showToast(
-                                                        msg:
-                                                            "เครดิตไม่พอสำหรับรับงานนี้",
-                                                        toastLength:
-                                                            Toast.LENGTH_SHORT,
-                                                        gravity:
-                                                            ToastGravity.CENTER,
-                                                        timeInSecForIosWeb: 1,
-                                                        backgroundColor:
-                                                            Colors.red,
-                                                        textColor: Colors.white,
-                                                        fontSize: 16.0);
-                                                  }
-                                                } else {
-                                                  print('confirm');
-                                                  var result =
-                                                      await Dialogs().confirm(
-                                                    context,
-                                                    "รับ Order ?",
-                                                    "ยืนยันรับ Order " +
-                                                        e.orderId,
-                                                  );
-                                                  print("Resulr = $result");
-                                                  if (result == true) {
-                                                    _confirmOrder(
-                                                        context.read<
-                                                            AppDataModel>(),
-                                                        e);
-                                                  }
-                                                }
+                                              var result =
+                                                  await Dialogs().confirm(
+                                                context,
+                                                "รับสินค้า หรือ ซื้อสินค้า",
+                                                "รับสินค้า หรือ ซื้อสินค้าครบแล้ว",
+                                              );
+                                              print('Delivering');
+                                              if (result == true) {
+                                                await _delivering(
+                                                    context
+                                                        .read<AppDataModel>(),
+                                                    e.orderId,
+                                                    e.customerId);
                                               }
                                             },
                                             child: Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
                                               children: [
-                                                Style().textSizeColor(
-                                                    'รับ Order',
-                                                    12,
-                                                    Colors.white),
+                                                (e.orderType == null ||
+                                                        e.orderType == "narmal")
+                                                    ? Style().textSizeColor(
+                                                        'รับสินค้า',
+                                                        12,
+                                                        Colors.white)
+                                                    : (e.orderType == "hotShop")
+                                                        ? Style().textSizeColor(
+                                                            'สั่งสินค้าหน้าร้าน',
+                                                            12,
+                                                            Colors.white)
+                                                        : Style().textSizeColor(
+                                                            'ซื้อสินค้าครบแล้ว',
+                                                            12,
+                                                            Colors.white)
                                               ],
                                             ),
                                             style: ElevatedButton.styleFrom(
@@ -828,14 +643,248 @@ class RiderState extends State<RiderPage> {
                                                         BorderRadius.circular(
                                                             5))),
                                           ),
-                                        ],
-                                      ),
-                                    ),
+                                        )
+                                      : Container(
+                                          width: appDataModel.screenW * 0.35,
+                                          margin: EdgeInsets.only(right: 5),
+                                          child: Column(
+                                            children: [
+                                              ElevatedButton(
+                                                onPressed: () async {
+                                                  if (e.orderType == "mart") {
+                                                    if (martSetupModel
+                                                            .shareForApp !=
+                                                        "0") {
+                                                      int orderAmount = int
+                                                              .parse(e.amount) +
+                                                          int.parse(
+                                                              e.costDelivery);
+                                                      int riderCredit =
+                                                          int.parse(appDataModel
+                                                              .userOneModel
+                                                              .credit);
+                                                      if (riderCredit >
+                                                          orderAmount) {
+                                                        print('confirm');
+                                                        var result =
+                                                            await Dialogs()
+                                                                .confirm(
+                                                          context,
+                                                          "รับ Order ?",
+                                                          "ยืนยันรับ Order " +
+                                                              e.orderId,
+                                                        );
+                                                        print(
+                                                            "Resulr = $result");
+                                                        if (result == true) {
+                                                          _confirmOrder(
+                                                              context.read<
+                                                                  AppDataModel>(),
+                                                              e);
+                                                        }
+                                                      } else {
+                                                        Fluttertoast.showToast(
+                                                            msg:
+                                                                "เครดิตไม่พอสำหรับรับงานนี้",
+                                                            toastLength: Toast
+                                                                .LENGTH_SHORT,
+                                                            gravity:
+                                                                ToastGravity
+                                                                    .CENTER,
+                                                            timeInSecForIosWeb:
+                                                                1,
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                            textColor:
+                                                                Colors.white,
+                                                            fontSize: 16.0);
+                                                      }
+                                                    } else {
+                                                      print('confirm');
+                                                      var result =
+                                                          await Dialogs()
+                                                              .confirm(
+                                                        context,
+                                                        "รับ Order ?",
+                                                        "ยืนยันรับ Order " +
+                                                            e.orderId,
+                                                      );
+                                                      print("Resulr = $result");
+                                                      if (result == true) {
+                                                        _confirmOrder(
+                                                            context.read<
+                                                                AppDataModel>(),
+                                                            e);
+                                                      }
+                                                    }
+                                                  } else if (e.orderType ==
+                                                      "gas") {
+                                                    if (gasSetupModel
+                                                            .shareForApp !=
+                                                        "0") {
+                                                      int orderAmount = int
+                                                              .parse(e.amount) +
+                                                          int.parse(
+                                                              e.costDelivery);
+                                                      int riderCredit =
+                                                          int.parse(appDataModel
+                                                              .userOneModel
+                                                              .credit);
+                                                      if (riderCredit >
+                                                          orderAmount) {
+                                                        print('confirm');
+                                                        var result =
+                                                            await Dialogs()
+                                                                .confirm(
+                                                          context,
+                                                          "รับ Order ?",
+                                                          "ยืนยันรับ Order " +
+                                                              e.orderId,
+                                                        );
+                                                        print(
+                                                            "Resulr = $result");
+                                                        if (result == true) {
+                                                          _confirmOrder(
+                                                              context.read<
+                                                                  AppDataModel>(),
+                                                              e);
+                                                        }
+                                                      } else {
+                                                        Fluttertoast.showToast(
+                                                            msg:
+                                                                "เครดิตไม่พอสำหรับรับงานนี้",
+                                                            toastLength: Toast
+                                                                .LENGTH_SHORT,
+                                                            gravity:
+                                                                ToastGravity
+                                                                    .CENTER,
+                                                            timeInSecForIosWeb:
+                                                                1,
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                            textColor:
+                                                                Colors.white,
+                                                            fontSize: 16.0);
+                                                      }
+                                                    } else {
+                                                      print('confirm');
+                                                      var result =
+                                                          await Dialogs()
+                                                              .confirm(
+                                                        context,
+                                                        "รับ Order ?",
+                                                        "ยืนยันรับ Order " +
+                                                            e.orderId,
+                                                      );
+                                                      print("Resulr = $result");
+                                                      if (result == true) {
+                                                        _confirmOrder(
+                                                            context.read<
+                                                                AppDataModel>(),
+                                                            e);
+                                                      }
+                                                    }
+                                                  } else {
+                                                    if (productSetupModel
+                                                            .shareForApp !=
+                                                        "0") {
+                                                      int orderAmount =
+                                                          int.parse(e.amount);
+                                                      int riderCredit =
+                                                          int.parse(appDataModel
+                                                              .userOneModel
+                                                              .credit);
+                                                      if (riderCredit >
+                                                          orderAmount) {
+                                                        print('confirm');
+                                                        var result =
+                                                            await Dialogs()
+                                                                .confirm(
+                                                          context,
+                                                          "รับ Order ?",
+                                                          "ยืนยันรับ Order " +
+                                                              e.orderId,
+                                                        );
+                                                        print(
+                                                            "Resulr = $result");
+                                                        if (result == true) {
+                                                          _confirmOrder(
+                                                              context.read<
+                                                                  AppDataModel>(),
+                                                              e);
+                                                        }
+                                                      } else {
+                                                        Fluttertoast.showToast(
+                                                            msg:
+                                                                "เครดิตไม่พอสำหรับรับงานนี้",
+                                                            toastLength: Toast
+                                                                .LENGTH_SHORT,
+                                                            gravity:
+                                                                ToastGravity
+                                                                    .CENTER,
+                                                            timeInSecForIosWeb:
+                                                                1,
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                            textColor:
+                                                                Colors.white,
+                                                            fontSize: 16.0);
+                                                      }
+                                                    } else {
+                                                      print('confirm');
+                                                      var result =
+                                                          await Dialogs()
+                                                              .confirm(
+                                                        context,
+                                                        "รับ Order ?",
+                                                        "ยืนยันรับ Order " +
+                                                            e.orderId,
+                                                      );
+                                                      print("Resulr = $result");
+                                                      if (result == true) {
+                                                        _confirmOrder(
+                                                            context.read<
+                                                                AppDataModel>(),
+                                                            e);
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Style().textSizeColor(
+                                                        'รับ Order',
+                                                        12,
+                                                        Colors.white),
+                                                  ],
+                                                ),
+                                                style: ElevatedButton.styleFrom(
+                                                    primary: Style().okColor,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        5))),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                ],
+                              )
                             ],
-                          )
-                        ],
-                      ),
-                    ),
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+                Row(
+                  children: [
+                    Style()
+                        .textBlackSize(e.startTime + " Order." + e.orderId, 12),
                   ],
                 )
               ],
@@ -944,334 +993,441 @@ class RiderState extends State<RiderPage> {
                   : Colors.white,
             ),
             margin: EdgeInsets.only(top: 2, left: 8, right: 8),
-            child: Row(
-              children: [
-                (e.orderType == "mart")
-                    ? FutureBuilder<List<MartListDetailModel>>(
-                        future: _getMartDetail(e.orderId),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            List<MartListDetailModel> _martDetailListData =
-                                snapshot.data;
-                            return _buildOrderMartAddress(
-                                context.read<AppDataModel>(),
-                                _orderDetail,
-                                _martDetailListData);
-                          }
+            child: (e.status == "0" || e.status == "5" || e.status == "6")
+                ? Container(
+                    padding: EdgeInsets.all(10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            (e.location == null)
+                                ? Container()
+                                : Style()
+                                    .textBlackSize("Order." + e.orderId, 14),
+                            Style().textBlackSize(e.startTime, 12),
+                          ],
+                        ),
+                        Style().textBlackSize(statusStr, 14),
+                      ],
+                    ))
+                : Column(
+                    children: [
+                      Row(
+                        children: [
+                          (e.orderType == "mart")
+                              ? FutureBuilder<List<MartListDetailModel>>(
+                                  future: _getMartDetail(e.orderId),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData) {
+                                      List<MartListDetailModel>
+                                          _martDetailListData = snapshot.data;
+                                      return _buildOrderMartAddress(
+                                          context.read<AppDataModel>(),
+                                          _orderDetail,
+                                          _martDetailListData);
+                                    }
 
-                          return Style().loading();
-                        })
-                    : _buildOrderAddress(
-                        context.read<AppDataModel>(), _orderDetail),
-                (e.status == '1')
-                    ? Container()
-                    : (e.status == '2' || e.status == '4')
-                        ? Container(
-                            margin:
-                                EdgeInsets.only(right: 8, top: 8, bottom: 8),
-                            child: Column(
-                              children: [
-                                Container(
-                                  width: appDataModel.screenW * 0.35,
-                                  margin: EdgeInsets.only(right: 10),
-                                  child: Column(
-                                    children: [
-                                      (e.status == "0" ||
-                                              e.status == "1" ||
-                                              e.status == "6")
-                                          ? Container()
-                                          : InkWell(
-                                              onTap: () {
-                                                appDataModel.orderDetailSelect =
-                                                    orderDetailFromJson(
-                                                        jsonEncode(e));
-                                                appDataModel.userTypeSelect =
-                                                    "rider";
-                                                appDataModel.orderIdSelected =
-                                                    e.orderId;
-                                                Navigator.pushNamed(
-                                                    context, "/chat-page");
-                                              },
-                                              child: Container(
-                                                margin: EdgeInsets.only(top: 5),
-                                                padding: EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(5),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    (e.chatRider !=
-                                                                null &&
-                                                            e.chatRider == "1")
-                                                        ? Badge(
-                                                            badgeColor: Colors
-                                                                .red,
-                                                            position:
-                                                                BadgePosition
-                                                                    .topEnd(
-                                                                        top: -5,
-                                                                        end:
-                                                                            -5),
-                                                            shape:
-                                                                BadgeShape
-                                                                    .circle,
+                                    return Style().loading();
+                                  })
+                              : _buildOrderAddress(
+                                  context.read<AppDataModel>(), _orderDetail),
+                          (e.status == '1')
+                              ? Container()
+                              : (e.status == '2' || e.status == '4')
+                                  ? Container(
+                                      margin: EdgeInsets.only(
+                                          right: 8, top: 8, bottom: 8),
+                                      child: Column(
+                                        children: [
+                                          Container(
+                                            width: appDataModel.screenW * 0.35,
+                                            margin: EdgeInsets.only(right: 10),
+                                            child: Column(
+                                              children: [
+                                                (e.status == "0" ||
+                                                        e.status == "1" ||
+                                                        e.status == "6")
+                                                    ? Container()
+                                                    : InkWell(
+                                                        onTap: () {
+                                                          appDataModel
+                                                                  .orderDetailSelect =
+                                                              orderDetailFromJson(
+                                                                  jsonEncode(
+                                                                      e));
+                                                          appDataModel
+                                                                  .userTypeSelect =
+                                                              "rider";
+                                                          appDataModel
+                                                                  .orderIdSelected =
+                                                              e.orderId;
+                                                          Navigator.pushNamed(
+                                                              context,
+                                                              "/chat-page");
+                                                        },
+                                                        child: Container(
+                                                          margin:
+                                                              EdgeInsets.only(
+                                                                  top: 5),
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                  10),
+                                                          decoration:
+                                                              BoxDecoration(
                                                             borderRadius:
                                                                 BorderRadius
                                                                     .circular(
-                                                                        100),
-                                                            child: Icon(
-                                                                FontAwesomeIcons
-                                                                    .facebookMessenger,
-                                                                size: 30,
-                                                                color: Colors
-                                                                    .blue),
-                                                            badgeContent: null)
-                                                        : Icon(
-                                                            FontAwesomeIcons
-                                                                .facebookMessenger,
-                                                            size: 30,
-                                                            color: Colors.blue),
-                                                    Style().textBlackSize(
-                                                        " แชตกับลูกค้า"
-                                                            .toString(),
-                                                        14),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                      Container(
-                                        margin: EdgeInsets.only(top: 5),
-                                        padding: EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(5),
-                                            color: Colors.grey.shade300),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            (e.payType == "cash")
-                                                ? Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceAround,
-                                                    children: [
-                                                      Icon(
-                                                          FontAwesomeIcons
-                                                              .moneyBill,
-                                                          size: 15,
-                                                          color: Colors.red),
-                                                      Style().textBlackSize(
-                                                          "   เงินสด", 14),
-                                                    ],
-                                                  )
-                                                : Row(
-                                                    children: [
-                                                      Icon(
-                                                          FontAwesomeIcons
-                                                              .wallet,
-                                                          size: 15,
-                                                          color: Colors.orange),
-                                                      Style().textBlackSize(
-                                                          "   เครดิต", 14),
-                                                    ],
-                                                  ),
-                                            Style().textBlackSize(
-                                                ((int.parse(e.amount) +
-                                                            int.parse(e
-                                                                .costDelivery) -
-                                                            int.parse(
-                                                                e.discount)))
-                                                        .toString() +
-                                                    " ฿",
-                                                14),
-                                          ],
-                                        ),
-                                      ),
-                                      (e.costDelivery4Rider == null)
-                                          ? Container()
-                                          : Container(
-                                              margin: EdgeInsets.only(top: 5),
-                                              padding: EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(5),
-                                                  color: Colors.grey.shade300),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      Icon(
-                                                        FontAwesomeIcons
-                                                            .handHoldingUsd,
-                                                        size: 15,
-                                                        color: Colors
-                                                            .green.shade600,
+                                                                        5),
+                                                          ),
+                                                          child: Row(
+                                                            children: [
+                                                              (e.chatRider !=
+                                                                          null &&
+                                                                      e.chatRider ==
+                                                                          "1")
+                                                                  ? Badge(
+                                                                      badgeColor:
+                                                                          Colors
+                                                                              .red,
+                                                                      position: BadgePosition.topEnd(
+                                                                          top:
+                                                                              -5,
+                                                                          end:
+                                                                              -5),
+                                                                      shape: BadgeShape
+                                                                          .circle,
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              100),
+                                                                      child: Icon(FontAwesomeIcons.facebookMessenger,
+                                                                          size:
+                                                                              30,
+                                                                          color: Colors
+                                                                              .blue),
+                                                                      badgeContent:
+                                                                          null)
+                                                                  : Icon(
+                                                                      FontAwesomeIcons
+                                                                          .facebookMessenger,
+                                                                      size: 30,
+                                                                      color: Colors
+                                                                          .blue),
+                                                              Style().textBlackSize(
+                                                                  " แชทกับลูกค้า"
+                                                                      .toString(),
+                                                                  14),
+                                                            ],
+                                                          ),
+                                                        ),
                                                       ),
-                                                      Style().textSizeColor(
-                                                          "   รายได้ ",
-                                                          16,
-                                                          Colors
-                                                              .green.shade600),
-                                                    ],
-                                                  ),
-                                                  Style().textSizeColor(
-                                                      e.costDelivery4Rider +
-                                                          " ฿",
-                                                      14,
-                                                      Colors.green.shade600)
-                                                ],
-                                              ),
-                                            ),
-                                      (e.orderType == "hotShop")
-                                          ? Container()
-                                          : Container(
-                                              margin: EdgeInsets.only(
-                                                  top: 5, bottom: 0),
-                                              padding: EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(5),
-                                                  color: Colors.grey.shade300),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Style().textSizeColor(
-                                                      "$statusStr",
-                                                      12,
-                                                      textColors),
-                                                ],
-                                              ),
-                                            ),
-                                    ],
-                                  ),
-                                ),
-                                (e.orderType == "hotShop")
-                                    ? Container(
-                                        width: appDataModel.screenW * 0.35,
-                                        child: Style().textFlexibleColorSize(
-                                            '*เตรียมค่าสินค้า ' +
-                                                e.amount +
-                                                " ฿",
-                                            2,
-                                            14,
-                                            Colors.red),
-                                      )
-                                    : Container(),
-                                Column(
-                                  children: [
-                                    (e.status == '2')
-                                        ? Container(
-                                            margin: EdgeInsets.only(
-                                              right: 8,
-                                            ),
-                                            width: appDataModel.screenW * 0.35,
-                                            child: ElevatedButton(
-                                              onPressed: () async {
-                                                String _title =
-                                                    "รับสินค้า หรือ ซื้อสินค้า";
-                                                String _body =
-                                                    "รับสินค้า หรือ ซื้อสินค้าครบแล้ว";
-                                                if (e.orderType == "gas") {
-                                                  _title = "เติมแก๊สแล้ว";
-                                                  _body =
-                                                      "เติมแก๊สเต็ม และ กำลังส่งถังแก๊สกลับ ";
-                                                }
-                                                var result =
-                                                    await Dialogs().confirm(
-                                                  context,
-                                                  _title,
-                                                  _body,
-                                                );
-                                                print('Delivering');
-                                                if (result == true) {
-                                                  await _delivering(
-                                                      context
-                                                          .read<AppDataModel>(),
-                                                      e.orderId,
-                                                      e.customerId);
-                                                }
-                                              },
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  (e.orderType == null ||
-                                                          e.orderType ==
-                                                              "narmal")
-                                                      ? Style().textSizeColor(
-                                                          'รับสินค้า',
-                                                          12,
-                                                          Colors.white)
-                                                      : (e.orderType ==
-                                                              "hotShop")
-                                                          ? Style().textSizeColor(
-                                                              'สั่งสินค้าหน้าร้าน',
-                                                              12,
-                                                              Colors.white)
-                                                          : (e.orderType ==
-                                                                  "gas")
-                                                              ? Style().textSizeColor(
-                                                                  'เติมแก๊สเต็มแล้ว',
-                                                                  12,
-                                                                  Colors.white)
-                                                              : Style().textSizeColor(
-                                                                  'ซื้อสินค้าครบแล้ว',
-                                                                  12,
-                                                                  Colors.white)
-                                                ],
-                                              ),
-                                              style: ElevatedButton.styleFrom(
-                                                  primary: Style().okColor,
-                                                  shape: RoundedRectangleBorder(
+                                                Container(
+                                                  margin:
+                                                      EdgeInsets.only(top: 5),
+                                                  padding: EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                              5))),
-                                            ),
-                                          )
-                                        : Container(
-                                            width: appDataModel.screenW * 0.35,
-                                            margin: EdgeInsets.only(right: 5),
-                                            child: Column(
-                                              children: [
-                                                ElevatedButton(
-                                                  onPressed: () async {
-                                                    var result = await Dialogs()
-                                                        .confirm(
-                                                            context,
-                                                            "จัดส่งสินค้า",
-                                                            "ยืนยันการส่งมอบสินค้า");
-                                                    print("resule = " +
-                                                        result.toString());
-                                                    if (result == true) {
-                                                      await _orderSuccess(
-                                                          context.read<
-                                                              AppDataModel>(),
-                                                          e.orderId,
-                                                          e.distance,
-                                                          e.payType,
-                                                          e.discount,
-                                                          e.customerId);
-                                                    }
-                                                  },
+                                                              5),
+                                                      color:
+                                                          Colors.grey.shade300),
                                                   child: Row(
                                                     mainAxisAlignment:
                                                         MainAxisAlignment
-                                                            .center,
+                                                            .spaceBetween,
                                                     children: [
-                                                      Style().textSizeColor(
-                                                          'จัดส่งสำเร็จ',
-                                                          12,
-                                                          Colors.white),
+                                                      (e.payType == "cash")
+                                                          ? Row(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .spaceAround,
+                                                              children: [
+                                                                Icon(
+                                                                    FontAwesomeIcons
+                                                                        .moneyBill,
+                                                                    size: 15,
+                                                                    color: Colors
+                                                                        .red),
+                                                                Style().textBlackSize(
+                                                                    "   เงินสด",
+                                                                    14),
+                                                              ],
+                                                            )
+                                                          : Row(
+                                                              children: [
+                                                                Icon(
+                                                                    FontAwesomeIcons
+                                                                        .wallet,
+                                                                    size: 15,
+                                                                    color: Colors
+                                                                        .orange),
+                                                                Style().textBlackSize(
+                                                                    "   เครดิต",
+                                                                    14),
+                                                              ],
+                                                            ),
+                                                      Style().textBlackSize(
+                                                          ((int.parse(e.amount) +
+                                                                      int.parse(e
+                                                                          .costDelivery) -
+                                                                      int.parse(
+                                                                          e.discount)))
+                                                                  .toString() +
+                                                              " ฿",
+                                                          14),
                                                     ],
                                                   ),
+                                                ),
+                                                (e.costDelivery4Rider == null)
+                                                    ? Container()
+                                                    : Container(
+                                                        margin: EdgeInsets.only(
+                                                            top: 5),
+                                                        padding:
+                                                            EdgeInsets.all(10),
+                                                        decoration: BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        5),
+                                                            color: Colors
+                                                                .grey.shade300),
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          children: [
+                                                            Row(
+                                                              children: [
+                                                                Icon(
+                                                                  FontAwesomeIcons
+                                                                      .handHoldingUsd,
+                                                                  size: 15,
+                                                                  color: Colors
+                                                                      .green
+                                                                      .shade600,
+                                                                ),
+                                                                Style().textSizeColor(
+                                                                    "   รายได้ ",
+                                                                    16,
+                                                                    Colors.green
+                                                                        .shade600),
+                                                              ],
+                                                            ),
+                                                            Style().textSizeColor(
+                                                                e.costDelivery4Rider +
+                                                                    " ฿",
+                                                                14,
+                                                                Colors.green
+                                                                    .shade600)
+                                                          ],
+                                                        ),
+                                                      ),
+                                                (e.orderType == "hotShop")
+                                                    ? Container()
+                                                    : Container(
+                                                        margin: EdgeInsets.only(
+                                                            top: 5, bottom: 0),
+                                                        padding:
+                                                            EdgeInsets.all(10),
+                                                        decoration: BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        5),
+                                                            color: Colors
+                                                                .grey.shade300),
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            Style()
+                                                                .textSizeColor(
+                                                                    "$statusStr",
+                                                                    12,
+                                                                    textColors),
+                                                          ],
+                                                        ),
+                                                      ),
+                                              ],
+                                            ),
+                                          ),
+                                          (e.orderType == "hotShop")
+                                              ? Container(
+                                                  width: appDataModel.screenW *
+                                                      0.35,
+                                                  child: Style()
+                                                      .textFlexibleColorSize(
+                                                          '*เตรียมค่าสินค้า ' +
+                                                              e.amount +
+                                                              " ฿",
+                                                          2,
+                                                          14,
+                                                          Colors.red),
+                                                )
+                                              : Container(),
+                                          Column(
+                                            children: [
+                                              (e.status == '2')
+                                                  ? Container(
+                                                      margin: EdgeInsets.only(
+                                                        right: 8,
+                                                      ),
+                                                      width:
+                                                          appDataModel.screenW *
+                                                              0.35,
+                                                      child: ElevatedButton(
+                                                        onPressed: () async {
+                                                          String _title =
+                                                              "รับสินค้า หรือ ซื้อสินค้า";
+                                                          String _body =
+                                                              "รับสินค้า หรือ ซื้อสินค้าครบแล้ว";
+                                                          if (e.orderType ==
+                                                              "gas") {
+                                                            _title =
+                                                                "เติมแก๊สแล้ว";
+                                                            _body =
+                                                                "เติมแก๊สเต็ม และ กำลังส่งถังแก๊สกลับ ";
+                                                          }
+                                                          var result =
+                                                              await Dialogs()
+                                                                  .confirm(
+                                                            context,
+                                                            _title,
+                                                            _body,
+                                                          );
+                                                          print('Delivering');
+                                                          if (result == true) {
+                                                            await _delivering(
+                                                                context.read<
+                                                                    AppDataModel>(),
+                                                                e.orderId,
+                                                                e.customerId);
+                                                          }
+                                                        },
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            (e.orderType ==
+                                                                        null ||
+                                                                    e.orderType ==
+                                                                        "narmal")
+                                                                ? Style().textSizeColor(
+                                                                    'รับสินค้า',
+                                                                    12,
+                                                                    Colors
+                                                                        .white)
+                                                                : (e.orderType ==
+                                                                        "hotShop")
+                                                                    ? Style().textSizeColor(
+                                                                        'สั่งสินค้าหน้าร้าน',
+                                                                        12,
+                                                                        Colors
+                                                                            .white)
+                                                                    : (e.orderType ==
+                                                                            "gas")
+                                                                        ? Style().textSizeColor(
+                                                                            'เติมแก๊สเต็มแล้ว',
+                                                                            12,
+                                                                            Colors
+                                                                                .white)
+                                                                        : Style().textSizeColor(
+                                                                            'ซื้อสินค้าครบแล้ว',
+                                                                            12,
+                                                                            Colors.white)
+                                                          ],
+                                                        ),
+                                                        style: ElevatedButton.styleFrom(
+                                                            primary:
+                                                                Style().okColor,
+                                                            shape: RoundedRectangleBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            5))),
+                                                      ),
+                                                    )
+                                                  : Container(
+                                                      width:
+                                                          appDataModel.screenW *
+                                                              0.35,
+                                                      margin: EdgeInsets.only(
+                                                          right: 5),
+                                                      child: Column(
+                                                        children: [
+                                                          ElevatedButton(
+                                                            onPressed:
+                                                                () async {
+                                                              var result = await Dialogs()
+                                                                  .confirm(
+                                                                      context,
+                                                                      "จัดส่งสินค้า",
+                                                                      "ยืนยันการส่งมอบสินค้า");
+                                                              print("resule = " +
+                                                                  result
+                                                                      .toString());
+                                                              if (result ==
+                                                                  true) {
+                                                                await _orderSuccess(
+                                                                    context.read<
+                                                                        AppDataModel>(),
+                                                                    e.orderId,
+                                                                    e.distance,
+                                                                    e.payType,
+                                                                    e.discount,
+                                                                    e.customerId);
+                                                              }
+                                                            },
+                                                            child: Row(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              children: [
+                                                                Style().textSizeColor(
+                                                                    'จัดส่งสำเร็จ',
+                                                                    12,
+                                                                    Colors
+                                                                        .white),
+                                                              ],
+                                                            ),
+                                                            style: ElevatedButton.styleFrom(
+                                                                primary: Style()
+                                                                    .okColor,
+                                                                shape: RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            5))),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                              Container(
+                                                width:
+                                                    appDataModel.screenW * 0.35,
+                                                margin:
+                                                    EdgeInsets.only(right: 8),
+                                                child: ElevatedButton(
+                                                  onPressed: () async {
+                                                    print(
+                                                        'cancelOrder By Driver');
+                                                    _cancelOrder(
+                                                        context.read<
+                                                            AppDataModel>(),
+                                                        e.orderId,
+                                                        e.customerId,
+                                                        e.shopId,
+                                                        e.orderType);
+                                                  },
+                                                  child: Style().textSizeColor(
+                                                      'ยกเลิก',
+                                                      12,
+                                                      Colors.white),
                                                   style: ElevatedButton.styleFrom(
-                                                      primary: Style().okColor,
+                                                      primary: Colors.redAccent,
                                                       shape:
                                                           RoundedRectangleBorder(
                                                               borderRadius:
@@ -1279,588 +1435,622 @@ class RiderState extends State<RiderPage> {
                                                                       .circular(
                                                                           5))),
                                                 ),
-                                              ],
-                                            ),
-                                          ),
-                                    Container(
-                                      width: appDataModel.screenW * 0.35,
-                                      margin: EdgeInsets.only(right: 8),
-                                      child: ElevatedButton(
-                                        onPressed: () async {
-                                          print('cancelOrder By Driver');
-                                          _cancelOrder(
-                                              context.read<AppDataModel>(),
-                                              e.orderId,
-                                              e.customerId,
-                                              e.shopId,
-                                              e.orderType);
-                                        },
-                                        child: Style().textSizeColor(
-                                            'ยกเลิก', 12, Colors.white),
-                                        style: ElevatedButton.styleFrom(
-                                            primary: Colors.redAccent,
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(5))),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              ],
-                            ),
-                          )
-                        : (e.status == '3')
-                            ? Column(
-                                children: [
-                                  Container(
-                                    margin: EdgeInsets.only(
-                                        right: 8, top: 8, bottom: 8),
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          width: appDataModel.screenW * 0.35,
-                                          margin: EdgeInsets.only(right: 10),
-                                          child: Column(
-                                            children: [
-                                              (e.status == "0" ||
-                                                      e.status == "1" ||
-                                                      e.status == "6")
-                                                  ? Container()
-                                                  : InkWell(
-                                                      onTap: () {
-                                                        appDataModel
-                                                                .orderDetailSelect =
-                                                            orderDetailFromJson(
-                                                                jsonEncode(e));
-                                                        appDataModel
-                                                                .userTypeSelect =
-                                                            "rider";
-                                                        appDataModel
-                                                                .orderIdSelected =
-                                                            e.orderId;
-                                                        Navigator.pushNamed(
-                                                            context,
-                                                            "/chat-page");
-                                                      },
-                                                      child: Container(
-                                                        margin: EdgeInsets.only(
-                                                            top: 5),
-                                                        padding:
-                                                            EdgeInsets.all(10),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(5),
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            Icon(
-                                                                FontAwesomeIcons
-                                                                    .facebookMessenger,
-                                                                size: 30,
-                                                                color: Colors
-                                                                    .blue),
-                                                            Style().textBlackSize(
-                                                                " แชตกับลูกค้า",
-                                                                14),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                              Container(
-                                                margin: EdgeInsets.only(top: 5),
-                                                padding: EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5),
-                                                    color:
-                                                        Colors.grey.shade300),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    (e.payType == "cash")
-                                                        ? Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .spaceAround,
-                                                            children: [
-                                                              Icon(
-                                                                  FontAwesomeIcons
-                                                                      .moneyBill,
-                                                                  size: 15,
-                                                                  color: Colors
-                                                                      .red),
-                                                              Style()
-                                                                  .textBlackSize(
-                                                                      "   เงินสด",
-                                                                      14),
-                                                            ],
-                                                          )
-                                                        : Row(
-                                                            children: [
-                                                              Icon(
-                                                                  FontAwesomeIcons
-                                                                      .wallet,
-                                                                  size: 15,
-                                                                  color: Colors
-                                                                      .orange),
-                                                              Style()
-                                                                  .textBlackSize(
-                                                                      "   เครดิต",
-                                                                      14),
-                                                            ],
-                                                          ),
-                                                    Style().textBlackSize(
-                                                        ((int.parse(e.amount) +
-                                                                    int.parse(e
-                                                                        .costDelivery) -
-                                                                    int.parse(e
-                                                                        .discount)))
-                                                                .toString() +
-                                                            " ฿",
-                                                        14),
-                                                  ],
-                                                ),
                                               ),
-                                              (e.costDelivery4Rider == null)
-                                                  ? Container()
-                                                  : Container(
-                                                      margin: EdgeInsets.only(
-                                                          top: 5),
-                                                      padding:
-                                                          EdgeInsets.all(10),
-                                                      decoration: BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(5),
-                                                          color: Colors
-                                                              .grey.shade300),
-                                                      child: Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: [
-                                                          Row(
-                                                            children: [
-                                                              Icon(
-                                                                FontAwesomeIcons
-                                                                    .handHoldingUsd,
-                                                                size: 15,
-                                                                color: Colors
-                                                                    .green
-                                                                    .shade600,
-                                                              ),
-                                                              Style().textSizeColor(
-                                                                  "   รายได้ ",
-                                                                  16,
-                                                                  Colors.green
-                                                                      .shade600),
-                                                            ],
-                                                          ),
-                                                          Style().textSizeColor(
-                                                              e.costDelivery4Rider +
-                                                                  " ฿",
-                                                              14,
-                                                              Colors.green
-                                                                  .shade600)
-                                                        ],
-                                                      ),
-                                                    ),
-                                              (e.orderType == "hotShop")
-                                                  ? Container()
-                                                  : Container(
-                                                      margin: EdgeInsets.only(
-                                                          top: 5, bottom: 0),
-                                                      padding:
-                                                          EdgeInsets.all(10),
-                                                      decoration: BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(5),
-                                                          color: Colors
-                                                              .grey.shade300),
-                                                      child: Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Style().textSizeColor(
-                                                              "$statusStr",
-                                                              12,
-                                                              textColors),
-                                                        ],
-                                                      ),
-                                                    ),
                                             ],
-                                          ),
-                                        ),
-                                        (e.orderType == "hotShop")
-                                            ? Container(
-                                                width:
-                                                    appDataModel.screenW * 0.35,
-                                                child: Style()
-                                                    .textFlexibleColorSize(
-                                                        '*เตรียมค่าสินค้า ' +
-                                                            e.amount +
-                                                            " ฿",
-                                                        2,
-                                                        14,
-                                                        Colors.red),
-                                              )
-                                            : Container(),
-                                        Column(
+                                          )
+                                        ],
+                                      ),
+                                    )
+                                  : (e.status == '3')
+                                      ? Column(
                                           children: [
-                                            (e.status == '2')
-                                                ? Container(
-                                                    margin: EdgeInsets.only(
-                                                      right: 8,
-                                                    ),
-                                                    width:
-                                                        appDataModel.screenW *
-                                                            0.35,
-                                                    child: ElevatedButton(
-                                                      onPressed: () async {
-                                                        String _title =
-                                                            "รับสินค้า หรือ ซื้อสินค้า";
-                                                        String _body =
-                                                            "รับสินค้า หรือ ซื้อสินค้าครบแล้ว";
-                                                        if (e.orderType ==
-                                                            "gas") {
-                                                          _title =
-                                                              "เติมแก๊สแล้ว";
-                                                          _body =
-                                                              "เติมแก๊สเต็ม และ กำลังส่งถังแก๊สกลับ ";
-                                                        }
-                                                        var result =
-                                                            await Dialogs()
-                                                                .confirm(
-                                                          context,
-                                                          _title,
-                                                          _body,
-                                                        );
-                                                        print('Delivering');
-                                                        if (result == true) {
-                                                          await _delivering(
-                                                              context.read<
-                                                                  AppDataModel>(),
-                                                              e.orderId,
-                                                              e.customerId);
-                                                        }
-                                                      },
-                                                      child: Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          (e.orderType ==
-                                                                      null ||
-                                                                  e.orderType ==
-                                                                      "narmal")
-                                                              ? Style()
-                                                                  .textSizeColor(
-                                                                      'รับสินค้า',
-                                                                      12,
-                                                                      Colors
-                                                                          .white)
-                                                              : (e.orderType ==
-                                                                      "hotShop")
-                                                                  ? Style().textSizeColor(
-                                                                      'สั่งสินค้าหน้าร้าน',
-                                                                      12,
-                                                                      Colors
-                                                                          .white)
-                                                                  : Style().textSizeColor(
-                                                                      'ซื้อสินค้าครบแล้ว',
-                                                                      12,
-                                                                      Colors
-                                                                          .white)
-                                                        ],
-                                                      ),
-                                                      style: ElevatedButton.styleFrom(
-                                                          primary:
-                                                              Style().okColor,
-                                                          shape: RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          5))),
-                                                    ),
-                                                  )
-                                                : Container(
+                                            Container(
+                                              margin: EdgeInsets.only(
+                                                  right: 8, top: 8, bottom: 8),
+                                              child: Column(
+                                                children: [
+                                                  Container(
                                                     width:
                                                         appDataModel.screenW *
                                                             0.35,
                                                     margin: EdgeInsets.only(
-                                                        right: 5),
+                                                        right: 10),
                                                     child: Column(
                                                       children: [
-                                                        ElevatedButton(
-                                                          onPressed: () async {
-                                                            var result =
-                                                                await Dialogs()
-                                                                    .confirm(
-                                                              context,
-                                                              "รับสินค้า",
-                                                              "รับสินค้าที่ร้านค้า",
-                                                            );
-                                                            if (result ==
-                                                                true) {
-                                                              print(
-                                                                  'Delivering');
-                                                              _delivering(
-                                                                  context.read<
-                                                                      AppDataModel>(),
-                                                                  e.orderId,
-                                                                  e.customerId);
-                                                            }
-                                                          },
-                                                          child: Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            children: [
-                                                              Style().textSizeColor(
-                                                                  'รับสินค้า',
-                                                                  12,
-                                                                  Colors.white),
-                                                            ],
-                                                          ),
-                                                          style: ElevatedButton.styleFrom(
-                                                              primary: Style()
-                                                                  .okColor,
-                                                              shape: RoundedRectangleBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              5))),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Column(
-                                children: [
-                                  Container(
-                                    margin: EdgeInsets.only(
-                                        right: 8, top: 8, bottom: 8),
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          width: appDataModel.screenW * 0.35,
-                                          margin: EdgeInsets.only(right: 10),
-                                          child: Column(
-                                            children: [
-                                              (e.status == "0" ||
-                                                      e.status == "1")
-                                                  ? Container()
-                                                  : (e.status == "0")
-                                                      ? Container()
-                                                      : InkWell(
-                                                          onTap: () {
-                                                            appDataModel
-                                                                    .orderDetailSelect =
-                                                                orderDetailFromJson(
-                                                                    jsonEncode(
-                                                                        e));
-                                                            appDataModel
-                                                                    .userTypeSelect =
-                                                                "rider";
-                                                            appDataModel
-                                                                    .orderIdSelected =
-                                                                e.orderId;
-                                                            Navigator.pushNamed(
-                                                                context,
-                                                                "/chat-page");
-                                                          },
-                                                          child: Container(
-                                                            margin:
-                                                                EdgeInsets.only(
-                                                                    top: 5),
-                                                            padding:
-                                                                EdgeInsets.all(
-                                                                    10),
-                                                            decoration:
-                                                                BoxDecoration(
+                                                        (e.status == "0" ||
+                                                                e.status ==
+                                                                    "1" ||
+                                                                e.status == "6")
+                                                            ? Container()
+                                                            : InkWell(
+                                                                onTap: () {
+                                                                  appDataModel
+                                                                          .orderDetailSelect =
+                                                                      orderDetailFromJson(
+                                                                          jsonEncode(
+                                                                              e));
+                                                                  appDataModel
+                                                                          .userTypeSelect =
+                                                                      "rider";
+                                                                  appDataModel
+                                                                          .orderIdSelected =
+                                                                      e.orderId;
+                                                                  Navigator.pushNamed(
+                                                                      context,
+                                                                      "/chat-page");
+                                                                },
+                                                                child:
+                                                                    Container(
+                                                                  margin: EdgeInsets
+                                                                      .only(
+                                                                          top:
+                                                                              5),
+                                                                  padding:
+                                                                      EdgeInsets
+                                                                          .all(
+                                                                              10),
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(5),
+                                                                  ),
+                                                                  child: Row(
+                                                                    children: [
+                                                                      Icon(
+                                                                          FontAwesomeIcons
+                                                                              .facebookMessenger,
+                                                                          size:
+                                                                              30,
+                                                                          color:
+                                                                              Colors.blue),
+                                                                      Style().textBlackSize(
+                                                                          " แชทกับลูกค้า",
+                                                                          14),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                        Container(
+                                                          margin:
+                                                              EdgeInsets.only(
+                                                                  top: 5),
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                  10),
+                                                          decoration: BoxDecoration(
                                                               borderRadius:
                                                                   BorderRadius
                                                                       .circular(
                                                                           5),
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                Icon(
-                                                                    FontAwesomeIcons
-                                                                        .facebookMessenger,
-                                                                    size: 30,
-                                                                    color: Colors
-                                                                        .blue),
-                                                                Style().textBlackSize(
-                                                                    " แชตกับลูกค้า",
-                                                                    14),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ),
-                                              Container(
-                                                margin: EdgeInsets.only(top: 5),
-                                                padding: EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5),
-                                                    color:
-                                                        Colors.grey.shade300),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    (e.payType == "cash")
-                                                        ? Row(
+                                                              color: Colors.grey
+                                                                  .shade300),
+                                                          child: Row(
                                                             mainAxisAlignment:
                                                                 MainAxisAlignment
-                                                                    .spaceAround,
+                                                                    .spaceBetween,
                                                             children: [
-                                                              Icon(
-                                                                  FontAwesomeIcons
-                                                                      .moneyBill,
-                                                                  size: 15,
-                                                                  color: Colors
-                                                                      .red),
-                                                              Style()
-                                                                  .textBlackSize(
-                                                                      "   เงินสด",
-                                                                      14),
-                                                            ],
-                                                          )
-                                                        : Row(
-                                                            children: [
-                                                              Icon(
-                                                                  FontAwesomeIcons
-                                                                      .wallet,
-                                                                  size: 15,
-                                                                  color: Colors
-                                                                      .orange),
-                                                              Style()
-                                                                  .textBlackSize(
-                                                                      "   เครดิต",
-                                                                      14),
+                                                              (e.payType ==
+                                                                      "cash")
+                                                                  ? Row(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .spaceAround,
+                                                                      children: [
+                                                                        Icon(
+                                                                            FontAwesomeIcons
+                                                                                .moneyBill,
+                                                                            size:
+                                                                                15,
+                                                                            color:
+                                                                                Colors.red),
+                                                                        Style().textBlackSize(
+                                                                            "   เงินสด",
+                                                                            14),
+                                                                      ],
+                                                                    )
+                                                                  : Row(
+                                                                      children: [
+                                                                        Icon(
+                                                                            FontAwesomeIcons
+                                                                                .wallet,
+                                                                            size:
+                                                                                15,
+                                                                            color:
+                                                                                Colors.orange),
+                                                                        Style().textBlackSize(
+                                                                            "   เครดิต",
+                                                                            14),
+                                                                      ],
+                                                                    ),
+                                                              Style().textBlackSize(
+                                                                  ((int.parse(e.amount) +
+                                                                              int.parse(e.costDelivery) -
+                                                                              int.parse(e.discount)))
+                                                                          .toString() +
+                                                                      " ฿",
+                                                                  14),
                                                             ],
                                                           ),
-                                                    Style().textBlackSize(
-                                                        ((_amount +
-                                                                    _costDelivery -
-                                                                    _discoubt))
-                                                                .toString() +
-                                                            " ฿",
-                                                        14),
-                                                  ],
-                                                ),
-                                              ),
-                                              (e.costDelivery4Rider == null)
-                                                  ? Container()
-                                                  : Container(
-                                                      margin: EdgeInsets.only(
-                                                          top: 5),
-                                                      padding:
-                                                          EdgeInsets.all(10),
-                                                      decoration: BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(5),
-                                                          color: Colors
-                                                              .grey.shade300),
-                                                      child: Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: [
-                                                          Row(
-                                                            children: [
-                                                              Icon(
-                                                                FontAwesomeIcons
-                                                                    .handHoldingUsd,
-                                                                size: 15,
-                                                                color: Colors
-                                                                    .green
-                                                                    .shade600,
+                                                        ),
+                                                        (e.costDelivery4Rider ==
+                                                                null)
+                                                            ? Container()
+                                                            : Container(
+                                                                margin: EdgeInsets
+                                                                    .only(
+                                                                        top: 5),
+                                                                padding:
+                                                                    EdgeInsets
+                                                                        .all(
+                                                                            10),
+                                                                decoration: BoxDecoration(
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(
+                                                                                5),
+                                                                    color: Colors
+                                                                        .grey
+                                                                        .shade300),
+                                                                child: Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
+                                                                  children: [
+                                                                    Row(
+                                                                      children: [
+                                                                        Icon(
+                                                                          FontAwesomeIcons
+                                                                              .handHoldingUsd,
+                                                                          size:
+                                                                              15,
+                                                                          color: Colors
+                                                                              .green
+                                                                              .shade600,
+                                                                        ),
+                                                                        Style().textSizeColor(
+                                                                            "   รายได้ ",
+                                                                            16,
+                                                                            Colors.green.shade600),
+                                                                      ],
+                                                                    ),
+                                                                    Style().textSizeColor(
+                                                                        e.costDelivery4Rider +
+                                                                            " ฿",
+                                                                        14,
+                                                                        Colors
+                                                                            .green
+                                                                            .shade600)
+                                                                  ],
+                                                                ),
                                                               ),
-                                                              Style().textSizeColor(
-                                                                  "   รายได้ ",
-                                                                  16,
-                                                                  Colors.green
-                                                                      .shade600),
+                                                        (e.orderType ==
+                                                                "hotShop")
+                                                            ? Container()
+                                                            : Container(
+                                                                margin: EdgeInsets
+                                                                    .only(
+                                                                        top: 5,
+                                                                        bottom:
+                                                                            0),
+                                                                padding:
+                                                                    EdgeInsets
+                                                                        .all(
+                                                                            10),
+                                                                decoration: BoxDecoration(
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(
+                                                                                5),
+                                                                    color: Colors
+                                                                        .grey
+                                                                        .shade300),
+                                                                child: Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .center,
+                                                                  children: [
+                                                                    Style().textSizeColor(
+                                                                        "$statusStr",
+                                                                        12,
+                                                                        textColors),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  (e.orderType == "hotShop")
+                                                      ? Container(
+                                                          width: appDataModel
+                                                                  .screenW *
+                                                              0.35,
+                                                          child: Style()
+                                                              .textFlexibleColorSize(
+                                                                  '*เตรียมค่าสินค้า ' +
+                                                                      e.amount +
+                                                                      " ฿",
+                                                                  2,
+                                                                  14,
+                                                                  Colors.red),
+                                                        )
+                                                      : Container(),
+                                                  Column(
+                                                    children: [
+                                                      (e.status == '2')
+                                                          ? Container(
+                                                              margin: EdgeInsets
+                                                                  .only(
+                                                                right: 8,
+                                                              ),
+                                                              width: appDataModel
+                                                                      .screenW *
+                                                                  0.35,
+                                                              child:
+                                                                  ElevatedButton(
+                                                                onPressed:
+                                                                    () async {
+                                                                  String
+                                                                      _title =
+                                                                      "รับสินค้า หรือ ซื้อสินค้า";
+                                                                  String _body =
+                                                                      "รับสินค้า หรือ ซื้อสินค้าครบแล้ว";
+                                                                  if (e.orderType ==
+                                                                      "gas") {
+                                                                    _title =
+                                                                        "เติมแก๊สแล้ว";
+                                                                    _body =
+                                                                        "เติมแก๊สเต็ม และ กำลังส่งถังแก๊สกลับ ";
+                                                                  }
+                                                                  var result =
+                                                                      await Dialogs()
+                                                                          .confirm(
+                                                                    context,
+                                                                    _title,
+                                                                    _body,
+                                                                  );
+                                                                  print(
+                                                                      'Delivering');
+                                                                  if (result ==
+                                                                      true) {
+                                                                    await _delivering(
+                                                                        context.read<
+                                                                            AppDataModel>(),
+                                                                        e.orderId,
+                                                                        e.customerId);
+                                                                  }
+                                                                },
+                                                                child: Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .center,
+                                                                  children: [
+                                                                    (e.orderType ==
+                                                                                null ||
+                                                                            e.orderType ==
+                                                                                "narmal")
+                                                                        ? Style().textSizeColor(
+                                                                            'รับสินค้า',
+                                                                            12,
+                                                                            Colors
+                                                                                .white)
+                                                                        : (e.orderType ==
+                                                                                "hotShop")
+                                                                            ? Style().textSizeColor(
+                                                                                'สั่งสินค้าหน้าร้าน',
+                                                                                12,
+                                                                                Colors.white)
+                                                                            : Style().textSizeColor('ซื้อสินค้าครบแล้ว', 12, Colors.white)
+                                                                  ],
+                                                                ),
+                                                                style: ElevatedButton.styleFrom(
+                                                                    primary: Style()
+                                                                        .okColor,
+                                                                    shape: RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(5))),
+                                                              ),
+                                                            )
+                                                          : Container(
+                                                              width: appDataModel
+                                                                      .screenW *
+                                                                  0.35,
+                                                              margin: EdgeInsets
+                                                                  .only(
+                                                                      right: 5),
+                                                              child: Column(
+                                                                children: [
+                                                                  ElevatedButton(
+                                                                    onPressed:
+                                                                        () async {
+                                                                      var result =
+                                                                          await Dialogs()
+                                                                              .confirm(
+                                                                        context,
+                                                                        "รับสินค้า",
+                                                                        "รับสินค้าที่ร้านค้า",
+                                                                      );
+                                                                      if (result ==
+                                                                          true) {
+                                                                        print(
+                                                                            'Delivering');
+                                                                        _delivering(
+                                                                            context.read<AppDataModel>(),
+                                                                            e.orderId,
+                                                                            e.customerId);
+                                                                      }
+                                                                    },
+                                                                    child: Row(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .center,
+                                                                      children: [
+                                                                        Style().textSizeColor(
+                                                                            'รับสินค้า',
+                                                                            12,
+                                                                            Colors.white),
+                                                                      ],
+                                                                    ),
+                                                                    style: ElevatedButton.styleFrom(
+                                                                        primary:
+                                                                            Style()
+                                                                                .okColor,
+                                                                        shape: RoundedRectangleBorder(
+                                                                            borderRadius:
+                                                                                BorderRadius.circular(5))),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Column(
+                                          children: [
+                                            Container(
+                                              margin: EdgeInsets.only(
+                                                  right: 8, top: 8, bottom: 8),
+                                              child: Column(
+                                                children: [
+                                                  Container(
+                                                    width:
+                                                        appDataModel.screenW *
+                                                            0.35,
+                                                    margin: EdgeInsets.only(
+                                                        right: 10),
+                                                    child: Column(
+                                                      children: [
+                                                        (e.status == "0" ||
+                                                                e.status == "1")
+                                                            ? Container()
+                                                            : (e.status == "0")
+                                                                ? Container()
+                                                                : InkWell(
+                                                                    onTap: () {
+                                                                      appDataModel
+                                                                              .orderDetailSelect =
+                                                                          orderDetailFromJson(
+                                                                              jsonEncode(e));
+                                                                      appDataModel
+                                                                              .userTypeSelect =
+                                                                          "rider";
+                                                                      appDataModel
+                                                                              .orderIdSelected =
+                                                                          e.orderId;
+                                                                      Navigator.pushNamed(
+                                                                          context,
+                                                                          "/chat-page");
+                                                                    },
+                                                                    child:
+                                                                        Container(
+                                                                      margin: EdgeInsets
+                                                                          .only(
+                                                                              top: 5),
+                                                                      padding:
+                                                                          EdgeInsets.all(
+                                                                              10),
+                                                                      decoration:
+                                                                          BoxDecoration(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(5),
+                                                                      ),
+                                                                      child:
+                                                                          Row(
+                                                                        children: [
+                                                                          Icon(
+                                                                              FontAwesomeIcons.facebookMessenger,
+                                                                              size: 30,
+                                                                              color: Colors.blue),
+                                                                          Style().textBlackSize(
+                                                                              " แชทกับลูกค้า",
+                                                                              14),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                        Container(
+                                                          margin:
+                                                              EdgeInsets.only(
+                                                                  top: 5),
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                  10),
+                                                          decoration: BoxDecoration(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          5),
+                                                              color: Colors.grey
+                                                                  .shade300),
+                                                          child: Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .spaceBetween,
+                                                            children: [
+                                                              (e.payType ==
+                                                                      "cash")
+                                                                  ? Row(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .spaceAround,
+                                                                      children: [
+                                                                        Icon(
+                                                                            FontAwesomeIcons
+                                                                                .moneyBill,
+                                                                            size:
+                                                                                15,
+                                                                            color:
+                                                                                Colors.red),
+                                                                        Style().textBlackSize(
+                                                                            "   เงินสด",
+                                                                            14),
+                                                                      ],
+                                                                    )
+                                                                  : Row(
+                                                                      children: [
+                                                                        Icon(
+                                                                            FontAwesomeIcons
+                                                                                .wallet,
+                                                                            size:
+                                                                                15,
+                                                                            color:
+                                                                                Colors.orange),
+                                                                        Style().textBlackSize(
+                                                                            "   เครดิต",
+                                                                            14),
+                                                                      ],
+                                                                    ),
+                                                              Style().textBlackSize(
+                                                                  ((_amount +
+                                                                              _costDelivery -
+                                                                              _discoubt))
+                                                                          .toString() +
+                                                                      " ฿",
+                                                                  14),
                                                             ],
                                                           ),
-                                                          Style().textSizeColor(
-                                                              _costDelivery4Rider
-                                                                      .toString() +
-                                                                  " ฿",
-                                                              14,
-                                                              Colors.green
-                                                                  .shade600)
-                                                        ],
-                                                      ),
+                                                        ),
+                                                        (e.costDelivery4Rider ==
+                                                                null)
+                                                            ? Container()
+                                                            : Container(
+                                                                margin: EdgeInsets
+                                                                    .only(
+                                                                        top: 5),
+                                                                padding:
+                                                                    EdgeInsets
+                                                                        .all(
+                                                                            10),
+                                                                decoration: BoxDecoration(
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(
+                                                                                5),
+                                                                    color: Colors
+                                                                        .grey
+                                                                        .shade300),
+                                                                child: Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
+                                                                  children: [
+                                                                    Row(
+                                                                      children: [
+                                                                        Icon(
+                                                                          FontAwesomeIcons
+                                                                              .handHoldingUsd,
+                                                                          size:
+                                                                              15,
+                                                                          color: Colors
+                                                                              .green
+                                                                              .shade600,
+                                                                        ),
+                                                                        Style().textSizeColor(
+                                                                            "   รายได้ ",
+                                                                            16,
+                                                                            Colors.green.shade600),
+                                                                      ],
+                                                                    ),
+                                                                    Style().textSizeColor(
+                                                                        _costDelivery4Rider.toString() +
+                                                                            " ฿",
+                                                                        14,
+                                                                        Colors
+                                                                            .green
+                                                                            .shade600)
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                        (e.orderType ==
+                                                                "hotShop")
+                                                            ? Container()
+                                                            : Container(
+                                                                margin: EdgeInsets
+                                                                    .only(
+                                                                        top: 5,
+                                                                        bottom:
+                                                                            0),
+                                                                padding:
+                                                                    EdgeInsets
+                                                                        .all(
+                                                                            10),
+                                                                decoration: BoxDecoration(
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(
+                                                                                5),
+                                                                    color: Colors
+                                                                        .grey
+                                                                        .shade300),
+                                                                child: Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .center,
+                                                                  children: [
+                                                                    Style().textSizeColor(
+                                                                        "$statusStr",
+                                                                        12,
+                                                                        textColors),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                      ],
                                                     ),
-                                              (e.orderType == "hotShop")
-                                                  ? Container()
-                                                  : Container(
-                                                      margin: EdgeInsets.only(
-                                                          top: 5, bottom: 0),
-                                                      padding:
-                                                          EdgeInsets.all(10),
-                                                      decoration: BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(5),
-                                                          color: Colors
-                                                              .grey.shade300),
-                                                      child: Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Style().textSizeColor(
-                                                              "$statusStr",
-                                                              12,
-                                                              textColors),
-                                                        ],
-                                                      ),
-                                                    ),
-                                            ],
-                                          ),
-                                        ),
-                                        (e.orderType == "hotShop")
-                                            ? Container(
-                                                width:
-                                                    appDataModel.screenW * 0.35,
-                                                child: Style()
-                                                    .textFlexibleColorSize(
-                                                        '*เตรียมค่าสินค้า ' +
-                                                            e.amount +
-                                                            " ฿",
-                                                        2,
-                                                        14,
-                                                        Colors.red),
-                                              )
-                                            : Container(),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              )
-              ],
-            ),
+                                                  ),
+                                                  (e.orderType == "hotShop")
+                                                      ? Container(
+                                                          width: appDataModel
+                                                                  .screenW *
+                                                              0.35,
+                                                          child: Style()
+                                                              .textFlexibleColorSize(
+                                                                  '*เตรียมค่าสินค้า ' +
+                                                                      e.amount +
+                                                                      " ฿",
+                                                                  2,
+                                                                  14,
+                                                                  Colors.red),
+                                                        )
+                                                      : Container(),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Style().textBlackSize(
+                              e.startTime + " Order." + e.orderId, 12),
+                        ],
+                      )
+                    ],
+                  ),
           ),
         );
       }).toList(),

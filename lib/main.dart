@@ -17,6 +17,7 @@ import 'package:hro/page/adminOrder.dart';
 import 'package:hro/page/adminSenNotify.dart';
 import 'package:hro/page/adminSystem.dart';
 import 'package:hro/page/allProductPage.dart';
+import 'package:hro/page/audioPlay.dart';
 import 'package:hro/page/chatPage.dart';
 import 'package:hro/page/creditTransection.dart';
 import 'package:hro/page/editMenu.dart';
@@ -161,6 +162,10 @@ class MyApp extends StatelessWidget {
           "/transectionTicket-page": (context) => TransactionTicketPage(),
           "/adminSendNotify-page": (context) => AdminSendNotifyPage(),
           "/RoutesWidget-page": (context) => RoutesWidget(),
+           "/audio-page": (context) => ChewieAudioDemo(),
+          
+
+          
         },
         initialRoute: initialRoute,
       ),
